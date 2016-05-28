@@ -33,3 +33,12 @@
 
 - video : implementer un mode d'entrainement dans un jeu de combat
 - video : fichier grammaire avec paires Nom/Sequence
+
+
+<BR>
+> https://www.youtube.com/playlist?list=PLbtzT1TYeoMjNOGEiaRmm_vMIwUAidnQz
+> - Lectures 1 to 12
+
+<BR>
+> https://www.youtube.com/playlist?list=PLqD_OdMOd_6YixsHkd9f4sNdof4IhIima
+> - Lectures 44 to 48
