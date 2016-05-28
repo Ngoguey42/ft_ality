@@ -36,9 +36,11 @@
 
 
 <BR>
-> https://www.youtube.com/playlist?list=PLbtzT1TYeoMjNOGEiaRmm_vMIwUAidnQz
+> Theory of Computation by Harry H. Porter III
+> - https://www.youtube.com/playlist?list=PLbtzT1TYeoMjNOGEiaRmm_vMIwUAidnQz
 > - Lectures 1 to 12
 
 <BR>
-> https://www.youtube.com/playlist?list=PLqD_OdMOd_6YixsHkd9f4sNdof4IhIima
+> Algorithms, Part I by Robert Sedgewick
+> - https://www.youtube.com/playlist?list=PLqD_OdMOd_6YixsHkd9f4sNdof4IhIima
 > - Lectures 44 to 48
