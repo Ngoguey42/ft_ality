@@ -14,10 +14,7 @@ MODULES					:=
 MKGEN_INCLUDESDIRS		:=
 # Obj files directory
 MKGEN_OBJDIR			:= _build
-# MKGEN_DEPCMD			:= ocamldep
-# MKGEN_DEPCMD			:= ocamlfind ocamldep -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o
 # mkgenml 'ocamlfind ocamldep -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o'
-
 
 # Source files directories
 MKGEN_SRCSDIRS_TERMBYTE	:= src/shared src/terminal
@@ -31,7 +28,6 @@ MKGEN_OBJSUFFIX_BROWSER	:= {'mli': 'cmi', 'ml': 'cmo'}
 
 # mkgen -> MKGEN_SRCSBIN_* variables
 # mkgen -> $(MKGEN_OBJDIR)/**/*.o rules
-
 
 # ============================================================================ #
 # Default  flags
@@ -67,7 +63,8 @@ else ifeq ($(BUILD_MODE),termnat)
   INCLUDEDIRS	= $(addprefix $(MKGEN_OBJDIR)/,$(MKGEN_SRCSDIRS_TERMNAT))
 
 else ifeq ($(BUILD_MODE),browser)
-  NAME			:= ft_ality
+  NAME			:= $(MKGEN_OBJDIR)/ft_ality
+  NAME2			:= $(MKGEN_OBJDIR)/ft_ality.js
   CC_LD			= $(CC_OCAMLC)
   CC_OCAMLC		= ocamlfind ocamlc
   LD_FLAGS		= -linkpkg
@@ -77,7 +74,6 @@ else ifeq ($(BUILD_MODE),browser)
   INCLUDEDIRS	= $(addprefix $(MKGEN_OBJDIR)/,$(MKGEN_SRCSDIRS_BROWSER))
 
 endif
-
 
 # ============================================================================ #
 # Compilers
@@ -95,7 +91,7 @@ ifeq ($(UNAME),CYGWIN)
 else
   CC_OCAMLC		?= ocamlc.opt
   CC_OCAMLOPT	= ocamlopt.opt
-  CC_OCAMLJS	= ocamlfind js_of_ocaml
+  CC_OCAMLJS	= js_of_ocaml
   CC_C			= clang
   CC_CPP		= clang++
   CC_AR			= ar
@@ -135,11 +131,18 @@ _all_separate_compilation: $(SRCSBIN)
 	$(MAKE) _all_linkage
 
 _all_linkage: $(NAME)
+	$(MAKE) _all_linkage2
+
+_all_linkage2: $(NAME2)
 
 # Linking
 $(NAME): $(LIBSBIN) $(SRCSBIN)
-	# ocamlfind ocamlc -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o -linkpkg -only-show $(LD_FLAGS_) $(filter-out %.cmi,$(SRCSBIN)) && $(PRINT_LINK)
-	$(CC_LD) $(LD_FLAGS_) $(filter-out %.cmi,$(SRCSBIN)) && $(PRINT_LINK)
+# ocamlfind ocamlc -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o -linkpkg -only-show $(LD_FLAGS_) $(filter-out %.cmi,$(SRCSBIN)) && $(PRINT_LINK)
+	$(CC_LD) $(LD_FLAGS_) $(SRCSBIN) && $(PRINT_LINK)
+
+%.js: $(NAME)
+	$(CC_OCAMLJS) -o $@ $(NAME) && $(PRINT_LINK)
+
 
 # Compiling
 $(MKGEN_OBJDIR)/%.o: %.c
