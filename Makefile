@@ -14,12 +14,20 @@ MODULES					:=
 MKGEN_INCLUDESDIRS		:=
 # Obj files directory
 MKGEN_OBJDIR			:= _build
+# MKGEN_DEPCMD			:= ocamldep
+# MKGEN_DEPCMD			:= ocamlfind ocamldep -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o
+# mkgenml 'ocamlfind ocamldep -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o'
+
+
 # Source files directories
 MKGEN_SRCSDIRS_TERMBYTE	:= src/shared src/terminal
-MKGEN_OBJSUFFIX_TERMBYTE:= ml:cmo mli:cmi
+MKGEN_OBJSUFFIX_TERMBYTE:= {'mli': 'cmi', 'ml': 'cmo'}
 
 MKGEN_SRCSDIRS_TERMNAT	:= src/shared src/terminal
-MKGEN_OBJSUFFIX_TERMNAT:= ml:cmx mli:cmi
+MKGEN_OBJSUFFIX_TERMNAT	:= {'mli': 'cmi', 'ml': 'cmx'}
+
+MKGEN_SRCSDIRS_BROWSER	:= src/shared src/browser
+MKGEN_OBJSUFFIX_BROWSER	:= {'mli': 'cmi', 'ml': 'cmo'}
 
 # mkgen -> MKGEN_SRCSBIN_* variables
 # mkgen -> $(MKGEN_OBJDIR)/**/*.o rules
@@ -42,23 +50,31 @@ MAKEFLAGS		+= -j
 #	LIBSBIN		link; dependancies
 #	LIBSMAKE	separate compilation; makefiles to call
 
-BUILD_MODE ?= termnat
+BUILD_MODE ?= browser
 
 ifeq ($(BUILD_MODE),termbyte)
   NAME			:= ft_ality
   CC_LD			= $(CC_OCAMLC)
 
   SRCSBIN		= $(MKGEN_SRCSBIN_TERMBYTE) #gen by mkgen
-  INCLUDEDIRS	= $(MKGEN_SRCSDIRS_TERMBYTE)
-  INCLUDEDIRS	+= $(addprefix $(MKGEN_OBJDIR)/,$(MKGEN_SRCSDIRS_TERMBYTE))
+  INCLUDEDIRS	= $(addprefix $(MKGEN_OBJDIR)/,$(MKGEN_SRCSDIRS_TERMBYTE))
 
 else ifeq ($(BUILD_MODE),termnat)
   NAME			:= ft_ality
   CC_LD			= $(CC_OCAMLOPT)
 
   SRCSBIN		= $(MKGEN_SRCSBIN_TERMNAT) #gen by mkgen
-  INCLUDEDIRS	= $(MKGEN_SRCSDIRS_TERMNAT)
-  INCLUDEDIRS	+= $(addprefix $(MKGEN_OBJDIR)/,$(MKGEN_SRCSDIRS_TERMNAT))
+  INCLUDEDIRS	= $(addprefix $(MKGEN_OBJDIR)/,$(MKGEN_SRCSDIRS_TERMNAT))
+
+else ifeq ($(BUILD_MODE),browser)
+  NAME			:= ft_ality
+  CC_LD			= $(CC_OCAMLC)
+  CC_OCAMLC		= ocamlfind ocamlc
+  LD_FLAGS		= -linkpkg
+  BASE_FLAGS	+= -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o
+
+  SRCSBIN		= $(MKGEN_SRCSBIN_BROWSER) #gen by mkgen
+  INCLUDEDIRS	= $(addprefix $(MKGEN_OBJDIR)/,$(MKGEN_SRCSDIRS_BROWSER))
 
 endif
 
@@ -77,8 +93,9 @@ ifeq ($(UNAME),CYGWIN)
     LD_FLAGS	+= -static
   endif
 else
-  CC_OCAMLC		= ocamlc.opt
+  CC_OCAMLC		?= ocamlc.opt
   CC_OCAMLOPT	= ocamlopt.opt
+  CC_OCAMLJS	= ocamlfind js_of_ocaml
   CC_C			= clang
   CC_CPP		= clang++
   CC_AR			= ar
@@ -121,6 +138,7 @@ _all_linkage: $(NAME)
 
 # Linking
 $(NAME): $(LIBSBIN) $(SRCSBIN)
+	# ocamlfind ocamlc -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o -linkpkg -only-show $(LD_FLAGS_) $(filter-out %.cmi,$(SRCSBIN)) && $(PRINT_LINK)
 	$(CC_LD) $(LD_FLAGS_) $(filter-out %.cmi,$(SRCSBIN)) && $(PRINT_LINK)
 
 # Compiling
