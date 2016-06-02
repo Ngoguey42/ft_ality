@@ -83,8 +83,7 @@ else ifeq ($(BUILD_MODE),termnat)
 
 else ifeq ($(BUILD_MODE),browser)
   NAME			:= $(OBJDIR)/ft_ality
-  NAME2			:= $(OBJDIR)/ft_ality.js
-  CC_LD			= $(CC_OCAMLC)
+  CC_LD			= ./link_browser.sh
   CC_OCAMLC		= ocamlfind ocamlc
   LD_FLAGS		= -linkpkg
   BASE_FLAGS	+= -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o
@@ -110,7 +109,6 @@ ifeq ($(UNAME),CYGWIN)
 else
   CC_OCAMLC		?= ocamlc.opt
   CC_OCAMLOPT	= ocamlopt.opt
-  CC_OCAMLJS	= js_of_ocaml
   CC_C			= clang
   CC_CPP		= clang++
   CC_AR			= ar
@@ -155,17 +153,10 @@ _all_separate_compilation: $(SRCSBIN)
 	$(MAKE) _all_linkage
 
 _all_linkage: $(NAME)
-	$(MAKE) _all_linkage2
-
-_all_linkage2: $(NAME2)
 
 # Linking
 $(NAME): $(LIBSBIN) $(SRCSBIN)
 	$(CC_LD) $(LD_FLAGS_) $(SRCSBIN) && $(PRINT_LINK)
-
-%.js: $(NAME)
-	$(CC_OCAMLJS) -o $@ $(NAME) && $(PRINT_LINK)
-
 
 # Compiling
 $(OBJDIR)/%.o: %.c
