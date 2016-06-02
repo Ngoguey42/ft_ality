@@ -59,7 +59,7 @@
 #### `at school` from `docker quickstart terminal` run docker with shared volume
 ```sh
 cd /Users/Shared
-git clone https://github.com/Ngoguey42/tmp_ftality
+git clone --recursive https://github.com/Ngoguey42/tmp_ftality
 cd tmp_ftality
 git pull origin master
 docker build -t ftality_img .
@@ -72,8 +72,14 @@ docker-machine restart default
 eval "$(docker-machine env default)"
 ```
 
-#### `in docker -i` compile project
+#### `in docker -i` compile project for browser
 ```sh
 cd tmp_ftality
-make
+make BUILD_MODE='browser'
+```
+
+#### `in docker -i` (re)generate depend*.mk files
+```sh
+cd tmp_ftality
+./mkgen/mkgenml 'ocamlfind ocamldep -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o'
 ```

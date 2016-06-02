@@ -1,5 +1,10 @@
 
 let truc = 42
+
+let debug () =
+  Bar.foo "test browser"
+
+
 let log s =
   ignore(
       Js.Unsafe.fun_call (Js.Unsafe.js_expr "console.log") [| Js.Unsafe.inject s |]
@@ -58,6 +63,5 @@ let work () =
 
 
 let () =
-  log "salut le world";
-  Printf.eprintf "Hello World browser\n%!";
-  Bar.foo "test browser"
+  log "salut le world"
+  (* Printf.eprintf "Hello World browser\n%!"; *)

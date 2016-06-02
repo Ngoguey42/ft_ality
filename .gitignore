@@ -1,4 +1,6 @@
 a.out
+_build
+ft_ality
 *.a
 *.o
 *.cmo
