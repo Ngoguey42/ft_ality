@@ -3,12 +3,14 @@
 # Misc
 UNAME := $(shell uname | cut -c1-6)
 NULL  :=
-SPACE := $(null) #
+SPACE := $(NULL) #
 COMMA := ,
 define NEWLINE
 
 
 endef
+#TODO ADDQUOTE function
+#TODO ADDCOMMA function
 
 # ============================================================================ #
 # Modules
@@ -65,7 +67,7 @@ MAKEFLAGS		+= -j --no-print-directory
 #	LIBSBIN		link; dependancies
 #	LIBSMAKE	separate compilation; makefiles to call
 
-BUILD_MODE ?= browser
+BUILD_MODE ?= termbyte
 
 ifeq ($(BUILD_MODE),termbyte)
   NAME			:= ft_ality
@@ -191,6 +193,11 @@ clean:
 
 # Clean everything
 fclean: clean
+	rm -f $(NAME)
+
+# Clean everything
+ffclean:
+	rm -rf $(OBJDIR)
 	rm -f $(NAME)
 
 # Clean and make
