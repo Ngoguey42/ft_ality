@@ -45,7 +45,19 @@ cd tmp_ftality
 make BUILD_MODE='browser'
 ```
 
-#### `in docker -i` (re)generate depend*.mk files
+#### `in terminal` compile project for terminal (native)
+```sh
+cd tmp_ftality
+make BUILD_MODE='termnat'
+```
+
+#### `in terminal` compile project for terminal (bytecode)
+```sh
+cd tmp_ftality
+make BUILD_MODE='termbyte'
+```
+
+#### `in docker -i` (re)generate depend_*.mk files
 ```sh
 cd tmp_ftality
 ./mkgen/mkgenml
