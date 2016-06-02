@@ -81,5 +81,5 @@ make BUILD_MODE='browser'
 #### `in docker -i` (re)generate depend*.mk files
 ```sh
 cd tmp_ftality
-./mkgen/mkgenml 'ocamlfind ocamldep -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o'
+./mkgen/mkgenml
 ```

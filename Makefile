@@ -1,5 +1,14 @@
 
-UNAME			:= $(shell uname | cut -c1-6)
+# ============================================================================ #
+# Misc
+UNAME := $(shell uname | cut -c1-6)
+NULL  :=
+SPACE := $(null) #
+COMMA := ,
+define NEWLINE
+
+
+endef
 
 # ============================================================================ #
 # Modules
@@ -10,24 +19,34 @@ MODULES					:=
 # ============================================================================ #
 # Sources Directories
 
-# include search path for .o dependencies
-MKGEN_INCLUDESDIRS		:=
-# Obj files directory
-MKGEN_OBJDIR			:= _build
-# mkgenml 'ocamlfind ocamldep -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o'
+OBJDIR				:= _build
+SRCDIRS_TERMBYTE	:= 'src/shared' 'src/terminal'
+SRCDIRS_TERMNAT		:= 'src/shared' 'src/terminal'
+SRCDIRS_BROWSER		:= 'src/shared' 'src/browser'
 
-# Source files directories
-MKGEN_SRCSDIRS_TERMBYTE	:= src/shared src/terminal
-MKGEN_OBJSUFFIX_TERMBYTE:= {'mli': 'cmi', 'ml': 'cmo'}
+# python dict
+define MKGEN_BODY
+{
+  'objdir' : '$(OBJDIR)',
+  'targets' : {
+    'termbyte' : {
+      'srcdirs' : [$(subst $(SPACE),$(COMMA)$(SPACE),$(SRCDIRS_TERMBYTE))],
+      'objsuffixes' : {'mli': 'cmi', 'ml': 'cmo'}
+    },
+    'termnat' : {
+      'srcdirs' : [$(subst $(SPACE),$(COMMA)$(SPACE),$(SRCDIRS_TERMNAT))],
+      'objsuffixes' : {'mli': 'cmi', 'ml': 'cmx'}
+    },
+    'browser' : {
+      'srcdirs' : [$(subst $(SPACE),$(COMMA)$(SPACE),$(SRCDIRS_BROWSER))],
+      'objsuffixes' : {'mli': 'cmi', 'ml': 'cmo'},
+      'depcmd' : 'ocamlfind ocamldep -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o'
+    }
+  }
+}
+endef
 
-MKGEN_SRCSDIRS_TERMNAT	:= src/shared src/terminal
-MKGEN_OBJSUFFIX_TERMNAT	:= {'mli': 'cmi', 'ml': 'cmx'}
-
-MKGEN_SRCSDIRS_BROWSER	:= src/shared src/browser
-MKGEN_OBJSUFFIX_BROWSER	:= {'mli': 'cmi', 'ml': 'cmo'}
-
-# mkgen -> MKGEN_SRCSBIN_* variables
-# mkgen -> $(MKGEN_OBJDIR)/**/*.o rules
+MKGEN := $(subst $(NEWLINE), ,$(MKGEN_BODY))
 
 # ============================================================================ #
 # Default  flags
@@ -35,7 +54,7 @@ BASE_FLAGS		=
 HEAD_FLAGS		= $(addprefix -I ,$(INCLUDEDIRS))
 LD_FLAGS		=
 
-MAKEFLAGS		+= -j
+MAKEFLAGS		+= -j --no-print-directory
 
 # ============================================================================ #
 # Build mode
@@ -53,25 +72,25 @@ ifeq ($(BUILD_MODE),termbyte)
   CC_LD			= $(CC_OCAMLC)
 
   SRCSBIN		= $(MKGEN_SRCSBIN_TERMBYTE) #gen by mkgen
-  INCLUDEDIRS	= $(addprefix $(MKGEN_OBJDIR)/,$(MKGEN_SRCSDIRS_TERMBYTE))
+  INCLUDEDIRS	= $(addprefix $(OBJDIR)/,$(SRCDIRS_TERMBYTE))
 
 else ifeq ($(BUILD_MODE),termnat)
   NAME			:= ft_ality
   CC_LD			= $(CC_OCAMLOPT)
 
   SRCSBIN		= $(MKGEN_SRCSBIN_TERMNAT) #gen by mkgen
-  INCLUDEDIRS	= $(addprefix $(MKGEN_OBJDIR)/,$(MKGEN_SRCSDIRS_TERMNAT))
+  INCLUDEDIRS	= $(addprefix $(OBJDIR)/,$(SRCDIRS_TERMNAT))
 
 else ifeq ($(BUILD_MODE),browser)
-  NAME			:= $(MKGEN_OBJDIR)/ft_ality
-  NAME2			:= $(MKGEN_OBJDIR)/ft_ality.js
+  NAME			:= $(OBJDIR)/ft_ality
+  NAME2			:= $(OBJDIR)/ft_ality.js
   CC_LD			= $(CC_OCAMLC)
   CC_OCAMLC		= ocamlfind ocamlc
   LD_FLAGS		= -linkpkg
   BASE_FLAGS	+= -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o
 
   SRCSBIN		= $(MKGEN_SRCSBIN_BROWSER) #gen by mkgen
-  INCLUDEDIRS	= $(addprefix $(MKGEN_OBJDIR)/,$(MKGEN_SRCSDIRS_BROWSER))
+  INCLUDEDIRS	= $(addprefix $(OBJDIR)/,$(SRCDIRS_BROWSER))
 
 endif
 
@@ -107,10 +126,9 @@ endif
 # ============================================================================ #
 # Misc
 MODULE_RULES	:= $(addsuffix /.git,$(MODULES))
-PRINT_OK		= printf '  \033[32m$<\033[0m\n'
-PRINT_LINK		= printf '\033[32m$@\033[0m\n'
-PRINT_MAKE		= printf '\033[32mmake $@\033[0m\n'
-DEPEND			:= depend.mk
+PRINT_OK		= printf "  \033[32m$<\033[0m\n"
+PRINT_LINK		= printf "\033[32m$@\033[0m\n"
+PRINT_MAKE		= printf "\033[32mmake $@\033[0m\n"
 SHELL			:= /bin/bash
 
 # ============================================================================ #
@@ -119,7 +137,13 @@ SHELL			:= /bin/bash
 # Default rule (needed to be before any include)
 all: _all_git
 
--include $(DEPEND)
+ifeq ($(BUILD_MODE),termbyte)
+  -include depend_termbyte.mk
+else ifeq ($(BUILD_MODE),termnat)
+  -include depend_termnat.mk
+else ifeq ($(BUILD_MODE),browser)
+  -include depend_browser.mk
+endif
 
 _all_git: $(MODULE_RULES)
 	$(MAKE) _all_libs
@@ -137,7 +161,6 @@ _all_linkage2: $(NAME2)
 
 # Linking
 $(NAME): $(LIBSBIN) $(SRCSBIN)
-# ocamlfind ocamlc -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o -linkpkg -only-show $(LD_FLAGS_) $(filter-out %.cmi,$(SRCSBIN)) && $(PRINT_LINK)
 	$(CC_LD) $(LD_FLAGS_) $(SRCSBIN) && $(PRINT_LINK)
 
 %.js: $(NAME)
@@ -145,17 +168,17 @@ $(NAME): $(LIBSBIN) $(SRCSBIN)
 
 
 # Compiling
-$(MKGEN_OBJDIR)/%.o: %.c
+$(OBJDIR)/%.o: %.c
 	$(CC_C) $(C_FLAGS) -c $< -o $@ && $(PRINT_OK)
-$(MKGEN_OBJDIR)/%.o: %.cpp
+$(OBJDIR)/%.o: %.cpp
 	$(CC_CPP) $(CPP_FLAGS) -c $< -o $@ && $(PRINT_OK)
-$(MKGEN_OBJDIR)/%.o: %.cc
+$(OBJDIR)/%.o: %.cc
 	$(CC_CPP) $(CPP_FLAGS) -c $< -o $@ && $(PRINT_OK)
-$(MKGEN_OBJDIR)/%.cmo: %.ml
+$(OBJDIR)/%.cmo: %.ml
 	$(CC_OCAMLC) $(ML_FLAGS) -o $@ -c $< && $(PRINT_OK)
-$(MKGEN_OBJDIR)/%.cmx: %.ml
+$(OBJDIR)/%.cmx: %.ml
 	$(CC_OCAMLOPT) $(ML_FLAGS) -o $@ -c $< && $(PRINT_OK)
-$(MKGEN_OBJDIR)/%.cmi: %.mli
+$(OBJDIR)/%.cmi: %.mli
 	$(CC_OCAMLC) $(ML_FLAGS) -o $@ -c $< && $(PRINT_OK)
 
 # Init submodules
@@ -168,7 +191,7 @@ $(LIBSMAKE):
 	$(MAKE) $@ && $(PRINT_MAKE)
 
 # Create obj directories
-$(MKGEN_OBJDIR)/%/:
+$(OBJDIR)/%/:
 	mkdir -p $@
 
 # Clean obj files
@@ -186,5 +209,5 @@ re: fclean
 
 # ============================================================================ #
 # Special targets
-# .SILENT:
+.SILENT:
 .PHONY: all clean fclean re _all_git _all_libs _all_separate_compilation _all_linkage $(LIBSMAKE)
