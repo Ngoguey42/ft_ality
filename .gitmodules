@@ -1,0 +1,3 @@
+[submodule "mkgen"]
+	path = mkgen
+	url = https://github.com/Ngoguey42/mkgen
