@@ -1,8 +1,6 @@
 
 let truc = 42
 
-let debug () =
-  Bar.foo "test browser"
 
 
 let log s =
@@ -63,5 +61,7 @@ let work () =
 
 
 let () =
-  log "salut le world"
+  log "salut le world";
+  Printf.printf "Test hello LOL\n%!";
+  ()
   (* Printf.eprintf "Hello World browser\n%!"; *)

@@ -10,6 +10,7 @@ define NEWLINE
 
 endef
 #TODO ADDQUOTE function
+#TODO REMOVENEWLINE function
 #TODO ADDCOMMA function
 
 # ============================================================================ #
@@ -56,7 +57,7 @@ BASE_FLAGS		=
 HEAD_FLAGS		= $(addprefix -I ,$(INCLUDEDIRS))
 LD_FLAGS		=
 
-MAKEFLAGS		+= -j --no-print-directory
+MAKEFLAGS		+= --no-print-directory
 
 # ============================================================================ #
 # Build mode
@@ -67,7 +68,7 @@ MAKEFLAGS		+= -j --no-print-directory
 #	LIBSBIN		link; dependancies
 #	LIBSMAKE	separate compilation; makefiles to call
 
-BUILD_MODE ?= termbyte
+BUILD_MODE ?= termnat
 
 ifeq ($(BUILD_MODE),termbyte)
   NAME			:= ft_ality

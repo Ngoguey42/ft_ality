@@ -1,7 +1,9 @@
 
+module rec D : (Shared_intf.Display_intf
+               with type key = Key.t) = Display.Make(A)
+   and A : (Shared_intf.Algo_intf
+           with type key = Key.t) = Algo.Make(Key)(D)
 
-module rec Display : Shared_intf.Display_intf = Make_display.Make_display(Algo)
-   and Algo : Shared_intf.Algo_intf = Make_algo.Make_algo(Display)
 
 (* module type Foo_intf = *)
 (*   sig *)
@@ -55,4 +57,5 @@ module rec Display : Shared_intf.Display_intf = Make_display.Make_display(Algo)
 (*    and Bar : (Bar_intf with type foo = Foo.t) = Make_bar(Foo) *)
 
 let () =
-  Display.run ()
+  D.run ();
+  ()
