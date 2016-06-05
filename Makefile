@@ -23,9 +23,9 @@ MODULES					:=
 # Sources Directories
 
 OBJDIR				:= _build
-SRCDIRS_TERMBYTE	:= 'src/shared' 'src/terminal'
-SRCDIRS_TERMNAT		:= 'src/shared' 'src/terminal'
-SRCDIRS_BROWSER		:= 'src/shared' 'src/browser'
+SRCDIRS_TERMBYTE	:= 'src/shared' 'src/terminal' 'src/graph'
+SRCDIRS_TERMNAT		:= 'src/shared' 'src/terminal' 'src/graph'
+SRCDIRS_BROWSER		:= 'src/shared' 'src/browser' 'src/graph'
 
 # python dict
 define MKGEN_BODY
@@ -139,11 +139,11 @@ SHELL			:= /bin/bash
 all: _all_git
 
 ifeq ($(BUILD_MODE),termbyte)
-  -include depend_termbyte.mk
+  -include deps/depend_termbyte.mk
 else ifeq ($(BUILD_MODE),termnat)
-  -include depend_termnat.mk
+  -include deps/depend_termnat.mk
 else ifeq ($(BUILD_MODE),browser)
-  -include depend_browser.mk
+  -include deps/depend_browser.mk
 endif
 
 _all_git: $(MODULE_RULES)

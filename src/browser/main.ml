@@ -62,6 +62,6 @@ let work () =
 
 let () =
   log "salut le world";
-  Printf.printf "Test hello LOL\n%!";
+  Printf.printf "Test hello LOOL\n%!";
   ()
   (* Printf.eprintf "Hello World browser\n%!"; *)
