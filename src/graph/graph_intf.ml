@@ -6,15 +6,43 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 16:33:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/06 16:47:01 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/06 17:22:57 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
 (* Implementation of graphs matching interfaces from lri's ocamlgraph
- * Aim is to only implement a Digraph+Concrete+Labeled graph
+ * Aim is to only implement a Digraph+Abstract+Labeled graph
+ * http://ocamlgraph.lri.fr/doc/Persistent.S.html
  *)
 
-(* Matching http://ocamlgraph.lri.fr/doc/Sig.COMPARABLE.html *)
+(* ************************************************************************** *)
+(* http://ocamlgraph.lri.fr/doc/Sig.ANY_TYPE.html *************************** *)
+module type Any_type_intf =
+  sig
+    type t
+  end
+
+
+(* ************************************************************************** *)
+(* http://ocamlgraph.lri.fr/doc/Sig.ORDERED_TYPE.html *********************** *)
+module type Ordered_type_intf =
+  sig
+    type t
+    val compare : t -> t -> int
+  end
+
+
+(* ************************************************************************** *)
+(* http://ocamlgraph.lri.fr/doc/Sig.ORDERED_TYPE_DFT.html ******************* *)
+module type Ordered_type_dft_intf =
+  sig
+    include Ordered_type_intf
+    val default : t
+  end
+
+
+(* ************************************************************************** *)
+(* http://ocamlgraph.lri.fr/doc/Sig.COMPARABLE.html ************************* *)
 module type Comparable_intf =
   sig
     type t
@@ -24,7 +52,8 @@ module type Comparable_intf =
   end
 
 
-(* Matching http://ocamlgraph.lri.fr/doc/Sig.VERTEX.html *)
+(* ************************************************************************** *)
+(* http://ocamlgraph.lri.fr/doc/Sig.VERTEX.html ***************************** *)
 module type Vertex_intf =
   sig
     type t
@@ -37,7 +66,8 @@ module type Vertex_intf =
   end
 
 
-(* Matching http://ocamlgraph.lri.fr/doc/Sig.EDGE.html *)
+(* ************************************************************************** *)
+(* http://ocamlgraph.lri.fr/doc/Sig.EDGE.html ******************************* *)
 module type Edge_intf =
   sig
     type t
@@ -53,7 +83,8 @@ module type Edge_intf =
   end
 
 
-(* Matching http://ocamlgraph.lri.fr/doc/Sig.G.html as close as possible *)
+(* ************************************************************************** *)
+(* http://ocamlgraph.lri.fr/doc/Sig.G.html as close as possible ************* *)
 module type G_intf =
   sig
     type t
@@ -100,9 +131,9 @@ module type G_intf =
   end
 
 
-(* Matching
-http://ocamlgraph.lri.fr/doc/Persistent.Digraph.ConcreteBidirectionalLabeled.html *)
-module type DigraphConcreteLabeled_intf =
+(* ************************************************************************** *)
+(* http://ocamlgraph.lri.fr/doc/Persistent.S.AbstractLabeled.html *********** *)
+module type DigraphAbstractLabeled_intf =
   sig
     include G_intf
 
@@ -114,3 +145,10 @@ module type DigraphConcreteLabeled_intf =
     val remove_edge : t -> vertex -> vertex -> t
     val remove_edge_e : t -> edge -> t
   end
+
+module type Make_DigraphhAbstractLabeled_intf =
+  functor (V : Comparable_intf) ->
+  functor (E : Ordered_type_dft_intf) ->
+  DigraphAbstractLabeled_intf
+  with type V.label = V.t
+   and type E.label = E.t
