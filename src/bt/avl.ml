@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 14:59:46 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/06 15:01:21 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/06 15:55:28 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -26,30 +26,36 @@ module type S =
     type elt
     type t
     val empty : t
-    (* val is_empty : t -> bool *)
+    val is_empty : t -> bool
     val mem : elt -> t -> bool
     val add : elt -> t -> t
     (* val singleton : elt -> t *)
     val remove : elt -> t -> t
+    (* merge (Map only) *)
     (* val union : t -> t -> t *)
-    (* val inter : t -> t -> t *)
-    (* val diff : t -> t -> t *)
+    (* val inter : t -> t -> t (Set only) *)
+    (* val diff : t -> t -> t (Set only) *)
     (* val compare : t -> t -> int *)
     (* val equal : t -> t -> bool *)
-    (* val subset : t -> t -> bool *)
+    (* val subset : t -> t -> bool (Set only) *)
+    val iter : (elt -> unit) -> t -> unit
+    val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
     (* val for_all: (elt -> bool) -> t -> bool *)
     (* val exists: (elt -> bool) -> t -> bool *)
     (* val filter: (elt -> bool) -> t -> t *)
     (* val partition: (elt -> bool) -> t -> t * t *)
     (* val cardinal : t -> int *)
-    (* val elements : t -> elt list *)
-    (* val min_elt : t -> elt *)
-    (* val max_elt : t -> elt *)
+    (* bindings (Map only) *)
+    (* max_binding (Map only) *)
+    (* min_binding (Map only) *)
+    (* val elements : t -> elt list (Set only) *)
+    (* val min_elt : t -> elt (Set only) *)
+    (* val max_elt : t -> elt (Set only) *)
     (* val choose : t -> elt *)
     (* val split : elt -> t -> t * bool * t *)
-    (* val iter : (elt -> unit) -> t -> unit *)
-    (* val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a *)
-
+    (* find (Both) *)
+    (* of_list (Set only) *)
+    (* map, mapi (Map only) *)
     val check : t -> bool
   end
 
@@ -115,21 +121,24 @@ module Make : Make_intf =
       in
       aux t
 
+    let is_empty = function Empty -> true | _ -> false
+
     (* Indentation used to emphasize the ordering of variables in repacking *)
     let balance l v r =
       let diff = (height l) - (height r) in
+      let h = height in
       if diff > 1 then
 	      match l with
-	      | Node(   l', v',      r') when (height l') - (height r') >= 0
-	        -> Node(l', v', Node(r',    v, r))
+	      | Node(        l', v',             r') when h l' - h r' >= 0
+	        -> Node(     l', v', Node(       r',             v, r))
 	      | Node(        l', v', Node(l'',   v'',      r''))
-	        -> Node(Node(l', v',      l''),  v'', Node(r'',     v, r))
+	        -> Node(Node(l', v',      l''),  v'', Node(r'',  v, r))
 	      | _
 	        -> failwith "Balancing failed"
       else if diff < (-1) then
 	      match r with
-	      | Node(              l',  v', r') when (height l') - (height r') <= 0
-	        -> Node(Node(l, v, l'), v', r')
+	      | Node(                    l',             v', r') when h l' - h r' <= 0
+	        -> Node(Node(l, v,       l'),            v', r')
 	      | Node(Node(         l'',  v'',      r''), v', r')
 	        -> Node(Node(l, v, l''), v'', Node(r'',  v', r'))
 	      | _
@@ -140,7 +149,7 @@ module Make : Make_intf =
     (* If already present, erase previous binding *)
     let add v t =
       let rec aux = function
-	      | Node(_, v', _) when v = v' -> Node(Empty, v, Empty)
+	      | Node(a, v', b) when v = v' -> Node(a, v, b)
 	      | Node(a, v', b) when v < v' -> balance (aux a) v' b
 	      | Node(a, v', b) -> balance a v' (aux b)
 	      | _ -> Node(Empty, v, Empty)
@@ -167,5 +176,21 @@ module Make : Make_intf =
 	      | _ -> failwith "doesn't exists"
       in
       aux t v
+
+    let fold f t init =
+      let rec aux acc = function
+        | Empty -> acc
+        | Node(lhs, v, rhs) -> aux (f v (aux acc lhs)) rhs
+      in
+      aux init t
+
+    let iter f t =
+      let rec aux = function
+        | Empty -> ()
+        | Node(lhs, v, rhs) -> aux lhs; f v; aux rhs
+      in
+      aux t
+
+
 
   end
