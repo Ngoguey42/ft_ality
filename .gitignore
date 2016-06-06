@@ -2,6 +2,7 @@ a.out
 _build
 ft_ality
 testavl
+testgraph
 *.a
 *.o
 *.cmo

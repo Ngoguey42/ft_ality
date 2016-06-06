@@ -26,7 +26,8 @@ OBJDIR				:= _build
 SRCDIRS_TERMBYTE	:= 'src/shared' 'src/terminal' 'src/graph'
 SRCDIRS_TERMNAT		:= 'src/shared' 'src/terminal' 'src/graph'
 SRCDIRS_BROWSER		:= 'src/shared' 'src/browser' 'src/graph'
-SRCDIRS_TESTAVL		:= 'src/bt' 'src/test/test_avl'
+SRCDIRS_TESTAVL		:= 'src/bt' 'src/test/avl'
+SRCDIRS_TESTGRAPH	:= 'src/graph' 'src/test/graph'
 
 # python dict
 define MKGEN_BODY
@@ -48,6 +49,10 @@ define MKGEN_BODY
     },
     'testavl' : {
       'srcdirs' : [$(subst $(SPACE),$(COMMA)$(SPACE),$(SRCDIRS_TESTAVL))],
+      'objsuffixes' : {'mli': 'cmi', 'ml': 'cmx'}
+    },
+    'testgraph' : {
+      'srcdirs' : [$(subst $(SPACE),$(COMMA)$(SPACE),$(SRCDIRS_TESTGRAPH))],
       'objsuffixes' : {'mli': 'cmi', 'ml': 'cmx'}
     },
   }
@@ -106,6 +111,13 @@ else ifeq ($(BUILD_MODE),testavl)
   SRCSBIN		= $(MKGEN_SRCSBIN_TESTAVL) #gen by mkgen
   INCLUDEDIRS	= $(addprefix $(OBJDIR)/,$(SRCDIRS_TESTAVL))
 
+else ifeq ($(BUILD_MODE),testgraph)
+  NAME			:= testgraph
+  CC_LD			= $(CC_OCAMLOPT)
+
+  SRCSBIN		= $(MKGEN_SRCSBIN_TESTGRAPH) #gen by mkgen
+  INCLUDEDIRS	= $(addprefix $(OBJDIR)/,$(SRCDIRS_TESTGRAPH))
+
 endif
 
 # ============================================================================ #
@@ -158,6 +170,8 @@ else ifeq ($(BUILD_MODE),browser)
   -include deps/depend_browser.mk
 else ifeq ($(BUILD_MODE),testavl)
   -include deps/depend_testavl.mk
+else ifeq ($(BUILD_MODE),testgraph)
+  -include deps/depend_testgraph.mk
 endif
 
 _all_git: $(MODULE_RULES)

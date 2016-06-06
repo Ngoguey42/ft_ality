@@ -6,10 +6,9 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 14:59:50 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/06 16:10:23 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/06 16:19:10 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
-
 
 module Int = struct
   type t = int
@@ -53,7 +52,7 @@ and run_test (t, refe) depth =
     );
     let _, num_elt = IntAvl.fold (check_order true) t' (min_int, 0) in
     if num_elt <> IntSet.cardinal refe'
-      || num_elt <> IntAvl.cardinal t' then (
+       || num_elt <> IntAvl.cardinal t' then (
       Printf.eprintf "Error num_elt got %d, wanted %d\n%!"
                      num_elt (IntSet.cardinal refe');
       let _, _ = IntAvl.fold (check_order false) t' (min_int, 0) in
@@ -66,8 +65,8 @@ and run_test (t, refe) depth =
   done;
   ()
 
-
 let () =
   run_test (IntAvl.empty, IntSet.empty) 0;
-  Printf.eprintf "PASSED!!!\n%!";
+  let n = float test_depth in
+  Printf.eprintf "PASSED all %.0f combinations!!!\n%!" (n ** n);
   ()

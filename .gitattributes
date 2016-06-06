@@ -1,2 +1,2 @@
 gg.vim -diff
-depend*.mk -diff
+deps -diff
