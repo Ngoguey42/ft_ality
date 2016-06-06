@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 14:59:46 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/06 15:55:28 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/06 16:12:14 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -23,6 +23,11 @@ module type OrderedType =
 
 module type S =
   sig
+    (* Merged interfaces from std Map and Set.
+     * Same ordering
+     * Same prototypes (unless stated otherwise)
+     *)
+
     type elt
     type t
     val empty : t
@@ -44,7 +49,7 @@ module type S =
     (* val exists: (elt -> bool) -> t -> bool *)
     (* val filter: (elt -> bool) -> t -> t *)
     (* val partition: (elt -> bool) -> t -> t * t *)
-    (* val cardinal : t -> int *)
+    val cardinal : t -> int
     (* bindings (Map only) *)
     (* max_binding (Map only) *)
     (* min_binding (Map only) *)
@@ -53,10 +58,11 @@ module type S =
     (* val max_elt : t -> elt (Set only) *)
     (* val choose : t -> elt *)
     (* val split : elt -> t -> t * bool * t *)
-    (* find (Both) *)
+    val find : (elt -> int) -> t -> elt option (* differs from std implementation *)
     (* of_list (Set only) *)
     (* map, mapi (Map only) *)
-    val check : t -> bool
+
+    val check : t -> bool (* not present in std implementation *)
   end
 
 (*s Sets implemented as reb-black trees. *)
@@ -156,7 +162,7 @@ module Make : Make_intf =
       in
       aux t
 
-    (* TODO: test and fail silently if not present *)
+    (* TODO: test and fail silently if v missing in t *)
     let remove v t =
       let rec min = function
 	      | Node(Empty, v', _) -> v'
@@ -191,6 +197,28 @@ module Make : Make_intf =
       in
       aux t
 
+    let find f t =
+      let rec aux = function
+	      | Node(lhs, v, rhs) ->
+           let direction = f v in
+           if direction = 0
+           then Some v
+           else if direction < 0
+           then aux lhs
+           else aux rhs
+	      | Empty ->
+           None
+      in
+      aux t
 
+    (* O(n) *)
+    let cardinal t =
+      let rec aux = function
+	      | Node(lhs, _, rhs) ->
+           aux lhs + 1 + aux rhs
+	      | Empty ->
+           0
+      in
+      aux t
 
   end

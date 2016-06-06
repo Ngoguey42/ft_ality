@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 14:59:50 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/06 15:49:06 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/06 16:10:23 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -52,7 +52,8 @@ and run_test (t, refe) depth =
       exit(1)
     );
     let _, num_elt = IntAvl.fold (check_order true) t' (min_int, 0) in
-    if num_elt <> IntSet.cardinal refe' then (
+    if num_elt <> IntSet.cardinal refe'
+      || num_elt <> IntAvl.cardinal t' then (
       Printf.eprintf "Error num_elt got %d, wanted %d\n%!"
                      num_elt (IntSet.cardinal refe');
       let _, _ = IntAvl.fold (check_order false) t' (min_int, 0) in
