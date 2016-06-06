@@ -6,12 +6,12 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 16:33:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/06 17:22:57 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/06 18:16:21 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
-(* Implementation of graphs matching interfaces from lri's ocamlgraph
- * Aim is to only implement a Digraph+Abstract+Labeled graph
+(* Implementation of graphs, matching interfaces from lri's OcamlGraph
+ * Aim is to only implement a Persistent+Digraph+Abstract+Labeled graph
  * http://ocamlgraph.lri.fr/doc/Persistent.S.html
  *)
 
@@ -133,7 +133,7 @@ module type G_intf =
 
 (* ************************************************************************** *)
 (* http://ocamlgraph.lri.fr/doc/Persistent.S.AbstractLabeled.html *********** *)
-module type DigraphAbstractLabeled_intf =
+module type PercistentDigraphAbstractLabeled_intf =
   sig
     include G_intf
 
@@ -146,9 +146,9 @@ module type DigraphAbstractLabeled_intf =
     val remove_edge_e : t -> edge -> t
   end
 
-module type Make_DigraphhAbstractLabeled_intf =
+module type Make_PercistentDigraphhAbstractLabeled_intf =
   functor (V : Comparable_intf) ->
   functor (E : Ordered_type_dft_intf) ->
-  DigraphAbstractLabeled_intf
+  PercistentDigraphAbstractLabeled_intf
   with type V.label = V.t
    and type E.label = E.t

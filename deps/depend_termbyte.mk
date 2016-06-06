@@ -1,7 +1,9 @@
-MKGEN_SRCSBIN_TERMBYTE := _build/src/shared/shared_intf.cmo _build/src/graph/graph_intf.cmo _build/src/terminal/key.cmo _build/src/terminal/display.cmo _build/src/shared/algo.cmo _build/src/terminal/main.cmo
+MKGEN_SRCSBIN_TERMBYTE := _build/src/shared/shared_intf.cmo _build/src/graph/graph_intf.cmo _build/src/graph/p_graph_intf.cmo _build/src/terminal/key.cmo _build/src/terminal/display.cmo _build/src/shared/algo.cmo _build/src/terminal/main.cmo
 
 _build/src/graph/graph_intf.cmo : src/graph/graph_intf.ml | _build/src/graph/
 _build/src/graph/graph_intf.cmx : src/graph/graph_intf.ml | _build/src/graph/
+_build/src/graph/p_graph_intf.cmo : src/graph/p_graph_intf.ml | _build/src/graph/
+_build/src/graph/p_graph_intf.cmx : src/graph/p_graph_intf.ml | _build/src/graph/
 _build/src/shared/algo.cmo : src/shared/algo.ml _build/src/shared/shared_intf.cmo | _build/src/shared/
 _build/src/shared/algo.cmx : src/shared/algo.ml _build/src/shared/shared_intf.cmx | _build/src/shared/
 _build/src/shared/shared_intf.cmo : src/shared/shared_intf.ml | _build/src/shared/
