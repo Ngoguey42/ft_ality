@@ -26,6 +26,7 @@ OBJDIR				:= _build
 SRCDIRS_TERMBYTE	:= 'src/shared' 'src/terminal' 'src/graph'
 SRCDIRS_TERMNAT		:= 'src/shared' 'src/terminal' 'src/graph'
 SRCDIRS_BROWSER		:= 'src/shared' 'src/browser' 'src/graph'
+SRCDIRS_TESTAVL		:= 'src/bt' 'src/test/test_avl'
 
 # python dict
 define MKGEN_BODY
@@ -44,7 +45,11 @@ define MKGEN_BODY
       'srcdirs' : [$(subst $(SPACE),$(COMMA)$(SPACE),$(SRCDIRS_BROWSER))],
       'objsuffixes' : {'mli': 'cmi', 'ml': 'cmo'},
       'depcmd' : 'ocamlfind ocamldep -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o'
-    }
+    },
+    'testavl' : {
+      'srcdirs' : [$(subst $(SPACE),$(COMMA)$(SPACE),$(SRCDIRS_TESTAVL))],
+      'objsuffixes' : {'mli': 'cmi', 'ml': 'cmx'}
+    },
   }
 }
 endef
@@ -93,6 +98,13 @@ else ifeq ($(BUILD_MODE),browser)
 
   SRCSBIN		= $(MKGEN_SRCSBIN_BROWSER) #gen by mkgen
   INCLUDEDIRS	= $(addprefix $(OBJDIR)/,$(SRCDIRS_BROWSER))
+
+else ifeq ($(BUILD_MODE),testavl)
+  NAME			:= testavl
+  CC_LD			= $(CC_OCAMLOPT)
+
+  SRCSBIN		= $(MKGEN_SRCSBIN_TESTAVL) #gen by mkgen
+  INCLUDEDIRS	= $(addprefix $(OBJDIR)/,$(SRCDIRS_TESTAVL))
 
 endif
 
@@ -144,6 +156,8 @@ else ifeq ($(BUILD_MODE),termnat)
   -include deps/depend_termnat.mk
 else ifeq ($(BUILD_MODE),browser)
   -include deps/depend_browser.mk
+else ifeq ($(BUILD_MODE),testavl)
+  -include deps/depend_testavl.mk
 endif
 
 _all_git: $(MODULE_RULES)

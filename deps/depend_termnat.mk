@@ -1,11 +1,11 @@
-MKGEN_SRCSBIN_TERMNAT := _build/src/graph/Vertex.cmx _build/src/shared/shared_intf.cmx _build/src/shared/algo.cmx _build/src/terminal/key.cmx _build/src/terminal/display.cmx _build/src/terminal/main.cmx
+MKGEN_SRCSBIN_TERMNAT := _build/src/graph/vertex.cmx _build/src/shared/shared_intf.cmx _build/src/shared/algo.cmx _build/src/terminal/key.cmx _build/src/terminal/display.cmx _build/src/terminal/main.cmx
 
-_build/src/graph/Vertex.cmo : src/graph/Vertex.ml | _build/src/graph/
-_build/src/graph/Vertex.cmx : src/graph/Vertex.ml | _build/src/graph/
-_build/src/shared/algo.cmo : src/shared/algo.ml _build/src/graph/Vertex.cmo _build/src/shared/shared_intf.cmo | _build/src/shared/
-_build/src/shared/algo.cmx : src/shared/algo.ml _build/src/graph/Vertex.cmx _build/src/shared/shared_intf.cmx | _build/src/shared/
-_build/src/shared/shared_intf.cmo : src/shared/shared_intf.ml _build/src/graph/Vertex.cmo | _build/src/shared/
-_build/src/shared/shared_intf.cmx : src/shared/shared_intf.ml _build/src/graph/Vertex.cmx | _build/src/shared/
+_build/src/graph/vertex.cmo : src/graph/vertex.ml | _build/src/graph/
+_build/src/graph/vertex.cmx : src/graph/vertex.ml | _build/src/graph/
+_build/src/shared/algo.cmo : src/shared/algo.ml _build/src/graph/vertex.cmo _build/src/shared/shared_intf.cmo | _build/src/shared/
+_build/src/shared/algo.cmx : src/shared/algo.ml _build/src/graph/vertex.cmx _build/src/shared/shared_intf.cmx | _build/src/shared/
+_build/src/shared/shared_intf.cmo : src/shared/shared_intf.ml _build/src/graph/vertex.cmo | _build/src/shared/
+_build/src/shared/shared_intf.cmx : src/shared/shared_intf.ml _build/src/graph/vertex.cmx | _build/src/shared/
 _build/src/terminal/display.cmo : src/terminal/display.ml _build/src/shared/shared_intf.cmo _build/src/terminal/key.cmi | _build/src/terminal/
 _build/src/terminal/display.cmx : src/terminal/display.ml _build/src/shared/shared_intf.cmx _build/src/terminal/key.cmx | _build/src/terminal/
 _build/src/terminal/key.cmi : src/terminal/key.mli _build/src/shared/shared_intf.cmo | _build/src/terminal/

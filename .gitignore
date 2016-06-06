@@ -1,6 +1,7 @@
 a.out
 _build
 ft_ality
+testavl
 *.a
 *.o
 *.cmo
