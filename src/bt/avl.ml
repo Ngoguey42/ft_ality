@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 14:59:46 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/06 16:19:05 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/07 13:20:49 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -25,7 +25,7 @@ module type S =
   sig
     (* Merged interfaces from std Map and Set.
      * Same ordering
-     * Same prototypes (unless stated otherwise)
+     * Same prototypes
      *)
 
     type elt
@@ -58,11 +58,14 @@ module type S =
     (* val max_elt : t -> elt (Set only) *)
     (* val choose : t -> elt *)
     (* val split : elt -> t -> t * bool * t *)
-    val find : (elt -> int) -> t -> elt option (* differs from std implementation *)
+    (* val find : elt -> t -> elt *)
     (* of_list (Set only) *)
     (* map, mapi (Map only) *)
 
-    val check : t -> bool (* not present in std implementation *)
+
+    (* Not present in std *)
+    val binary_find : (elt -> int) -> t -> elt option
+    val check : t -> bool (* not present in std *)
   end
 
 (*s Sets implemented as reb-black trees. *)
@@ -197,7 +200,7 @@ module Make : Make_intf =
       in
       aux t
 
-    let find f t =
+    let binary_find f t =
       let rec aux = function
 	      | Node(lhs, v, rhs) ->
            let direction = f v in

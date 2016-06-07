@@ -1,2 +1,2 @@
 gg.vim -diff
-deps -diff
+deps/* -diff

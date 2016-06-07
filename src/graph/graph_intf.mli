@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 16:33:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/06 18:16:21 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/07 13:15:49 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -14,6 +14,17 @@
  * Aim is to only implement a Persistent+Digraph+Abstract+Labeled graph
  * http://ocamlgraph.lri.fr/doc/Persistent.S.html
  *)
+
+(* Available Persistent+Digraph:
+ * https://github.com/backtracking/ocamlgraph/blob/master/src/persistent.ml
+ * Digraph.Concrete
+ * Digraph.ConcreteLabeled
+ * Digraph.ConcreteBidirectional
+ * Digraph.ConcreteBidirectionalLabeled
+ * Digraph.Abstract
+ * Digraph.AbstractLabeled
+ *)
+
 
 (* ************************************************************************** *)
 (* http://ocamlgraph.lri.fr/doc/Sig.ANY_TYPE.html *************************** *)
@@ -46,9 +57,9 @@ module type Ordered_type_dft_intf =
 module type Comparable_intf =
   sig
     type t
+    (* val hash : t -> int *)
+    (* val equal : t -> t -> bool *)
     val compare : t -> t -> int
-                              (* val hash : t -> int *)
-                              (* val equal : t -> t -> bool *)
   end
 
 
@@ -84,7 +95,7 @@ module type Edge_intf =
 
 
 (* ************************************************************************** *)
-(* http://ocamlgraph.lri.fr/doc/Sig.G.html as close as possible ************* *)
+(* http://ocamlgraph.lri.fr/doc/Sig.G.html ********************************** *)
 module type G_intf =
   sig
     type t
@@ -96,38 +107,45 @@ module type G_intf =
 
     val is_empty : t -> bool
     val nb_vertex : t -> int
-    val nb_edges : t -> int
-    val out_degree : t -> vertex -> int
-    val in_degree : t -> vertex -> int
+    (* val nb_edges : t -> int *)
+    (* val out_degree : t -> vertex -> int *)
+    (* val in_degree : t -> vertex -> int *)
 
     (* val mem_vertex : t -> vertex -> bool *)
     (* val mem_edge : t -> vertex -> vertex -> bool *)
     (* val mem_edge_e : t -> edge -> bool *)
     (* val find_edge : t -> vertex -> vertex -> edge *)
-    val find_all_edges : t -> vertex -> vertex -> edge list
+    (* val find_all_edges : t -> vertex -> vertex -> edge list *)
 
-    val succ : t -> vertex -> vertex list
-    val pred : t -> vertex -> vertex list
-    val succ_e : t -> vertex -> edge list
-    val pred_e : t -> vertex -> edge list
+    (* val succ : t -> vertex -> vertex list *)
+    (* val pred : t -> vertex -> vertex list *)
+    (* val succ_e : t -> vertex -> edge list *)
+    (* val pred_e : t -> vertex -> edge list *)
 
-                                     (* val iter_vertex : (vertex -> unit) -> t -> unit *)
-                                     (* val fold_vertex : (vertex -> 'a -> 'a) -> t -> 'a -> 'a *)
-                                     (* val iter_edges : (vertex -> vertex -> unit) -> t -> unit *)
-                                     (* val fold_edges : (vertex -> vertex -> 'a -> 'a) -> t -> 'a -> 'a *)
-                                     (* val iter_edges_e : (edge -> unit) -> t -> unit *)
-                                     (* val fold_edges_e : (edge -> 'a -> 'a) -> t -> 'a -> 'a *)
-                                     (* val map_vertex : (vertex -> vertex) -> t -> t *)
+    val iter_vertex : (vertex -> unit) -> t -> unit
+    val fold_vertex : (vertex -> 'a -> 'a) -> t -> 'a -> 'a
+    (* val iter_edges : (vertex -> vertex -> unit) -> t -> unit *)
+    (* val fold_edges : (vertex -> vertex -> 'a -> 'a) -> t -> 'a -> 'a *)
+    (* val iter_edges_e : (edge -> unit) -> t -> unit *)
+    (* val fold_edges_e : (edge -> 'a -> 'a) -> t -> 'a -> 'a *)
+    (* val map_vertex : (vertex -> vertex) -> t -> t *)
 
-                                     (* val iter_succ : (vertex -> unit) -> t -> vertex -> unit *)
-                                     (* val iter_pred : (vertex -> unit) -> t -> vertex -> unit *)
-                                     (* val fold_succ : (vertex -> 'a -> 'a) -> t -> vertex -> 'a -> 'a *)
-                                     (* val fold_pred : (vertex -> 'a -> 'a) -> t -> vertex -> 'a -> 'a *)
+    (* val iter_succ : (vertex -> unit) -> t -> vertex -> unit *)
+    (* val iter_pred : (vertex -> unit) -> t -> vertex -> unit *)
+    (* val fold_succ : (vertex -> 'a -> 'a) -> t -> vertex -> 'a -> 'a *)
+    (* val fold_pred : (vertex -> 'a -> 'a) -> t -> vertex -> 'a -> 'a *)
 
-                                     (* val iter_succ_e : (edge -> unit) -> t -> vertex -> unit *)
-                                     (* val fold_succ_e : (edge -> 'a -> 'a) -> t -> vertex -> 'a -> 'a *)
-                                     (* val iter_pred_e : (edge -> unit) -> t -> vertex -> unit *)
-                                     (* val fold_pred_e : (edge -> 'a -> 'a) -> t -> vertex -> 'a -> 'a *)
+    (* val iter_succ_e : (edge -> unit) -> t -> vertex -> unit *)
+    (* val fold_succ_e : (edge -> 'a -> 'a) -> t -> vertex -> 'a -> 'a *)
+    (* val iter_pred_e : (edge -> unit) -> t -> vertex -> unit *)
+    (* val fold_pred_e : (edge -> 'a -> 'a) -> t -> vertex -> 'a -> 'a *)
+
+
+    (* Not Present in OcamlGraph *)
+    val binary_find_succ : (vertex -> int) -> t -> vertex -> vertex option
+    val binary_find_succ_e : (edge -> int) -> t -> vertex -> edge option
+
+    val invariants : t -> bool
   end
 
 
@@ -147,7 +165,7 @@ module type PercistentDigraphAbstractLabeled_intf =
   end
 
 module type Make_PercistentDigraphhAbstractLabeled_intf =
-  functor (V : Comparable_intf) ->
+  functor (V : Any_type_intf) ->
   functor (E : Ordered_type_dft_intf) ->
   PercistentDigraphAbstractLabeled_intf
   with type V.label = V.t
