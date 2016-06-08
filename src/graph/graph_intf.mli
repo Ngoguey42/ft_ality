@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 16:33:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/07 13:15:49 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/08 11:41:08 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -164,7 +164,7 @@ module type PercistentDigraphAbstractLabeled_intf =
     val remove_edge_e : t -> edge -> t
   end
 
-module type Make_PercistentDigraphhAbstractLabeled_intf =
+module type Make_PercistentDigraphAbstractLabeled_intf =
   functor (V : Any_type_intf) ->
   functor (E : Ordered_type_dft_intf) ->
   PercistentDigraphAbstractLabeled_intf
