@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/08 11:58:46 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/08 12:46:54 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/08 14:31:36 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -34,8 +34,8 @@ module type S =
     (*             'a t -> 'a t -> 'a t *)
     (* val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int *)
     (* val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool *)
-    (* val iter : (key -> 'a -> unit) -> 'a t -> unit *)
-    (* val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b *)
+    val iter : (key -> 'a -> unit) -> 'a t -> unit
+    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
     (* val for_all : (key -> 'a -> bool) -> 'a t -> bool *)
     (* val exists : (key -> 'a -> bool) -> 'a t -> bool *)
     (* val filter : (key -> 'a -> bool) -> 'a t -> 'a t *)
@@ -51,6 +51,9 @@ module type S =
     (* val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t *)
 
     (* Not present in std *)
+    (* val find : (key -> bool) -> 'a t -> 'a option *)
+    val find_opt : key -> 'a t -> 'a option
+    val find_exn : key -> 'a t -> 'a
     val binary_find : (key -> int) -> 'a t -> (key * 'a) option
     val check : 'a t -> bool
   end
@@ -191,7 +194,7 @@ module Make : Make_intf =
     let binary_find f t =
       let rec aux = function
 	      | Node(lhs, (k, v), rhs) ->
-           let direction = f k in
+           let direction = f k in (* TODO: check compare parameters *)
            if direction = 0
            then Some (k, v)
            else if direction < 0
@@ -201,6 +204,35 @@ module Make : Make_intf =
            None
       in
       aux t
+
+    let find_opt k t =
+      let rec aux = function
+	      | Node(lhs, (k', v'), rhs) ->
+           let direction = Ord.compare k k' in (* TODO: check compare parameters *)
+           if direction = 0
+           then Some v'
+           else if direction < 0
+           then aux lhs
+           else aux rhs
+	      | Empty ->
+           None
+      in
+      aux t
+
+    let find_exn k t =
+      let rec aux = function
+	      | Node(lhs, (k', v'), rhs) ->
+           let direction = Ord.compare k k' in (* TODO: check compare parameters *)
+           if direction = 0
+           then v'
+           else if direction < 0
+           then aux lhs
+           else aux rhs
+	      | Empty ->
+           raise Not_found
+      in
+      aux t
+
 
     (* O(n) *)
     let cardinal t =

@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 14:59:46 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/08 12:54:46 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/08 14:55:59 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -47,7 +47,7 @@ module type S =
     val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
     (* val for_all: (elt -> bool) -> t -> bool *)
     (* val exists: (elt -> bool) -> t -> bool *)
-    (* val filter: (elt -> bool) -> t -> t *)
+    val filter: (elt -> bool) -> t -> t
     (* val partition: (elt -> bool) -> t -> t * t *)
     val cardinal : t -> int
     (* bindings (Map only) *)
@@ -64,6 +64,7 @@ module type S =
 
 
     (* Not present in std *)
+    val find : (elt -> bool) -> t -> elt option
     val binary_find : (elt -> int) -> t -> elt option
     val check : t -> bool (* not present in std *)
   end
@@ -213,6 +214,19 @@ module Make : Make_intf =
            None
       in
       aux t
+
+    let find f t =
+      let rec aux = function
+        | Empty -> None
+        | Node(lhs, v, rhs) when f v -> Some v
+        | Node(lhs, v, rhs) -> match aux lhs with
+                               | None -> aux rhs
+                               | ret -> ret
+      in
+      aux t
+
+    let filter f t =
+      fold (fun v acc -> if f v then add v acc else acc) t empty
 
     (* O(n) *)
     let cardinal t =

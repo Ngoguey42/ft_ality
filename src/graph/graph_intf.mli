@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 16:33:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/08 11:41:08 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/08 14:53:29 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -82,6 +82,10 @@ module type Vertex_intf =
 module type Edge_intf =
   sig
     type t
+    (* In my implementation:
+     * Always comparing label before src and dst
+     * Enables label-directed search in binary_find_succ_e
+     *)
     val compare : t -> t -> int
 
     type vertex
@@ -111,7 +115,7 @@ module type G_intf =
     (* val out_degree : t -> vertex -> int *)
     (* val in_degree : t -> vertex -> int *)
 
-    (* val mem_vertex : t -> vertex -> bool *)
+    val mem_vertex : t -> vertex -> bool
     (* val mem_edge : t -> vertex -> vertex -> bool *)
     (* val mem_edge_e : t -> edge -> bool *)
     (* val find_edge : t -> vertex -> vertex -> edge *)
@@ -142,8 +146,7 @@ module type G_intf =
 
 
     (* Not Present in OcamlGraph *)
-    val binary_find_succ : (vertex -> int) -> t -> vertex -> vertex option
-    val binary_find_succ_e : (edge -> int) -> t -> vertex -> edge option
+    val binary_find_succ_e : (E.label -> int) -> t -> vertex -> edge option
 
     val invariants : t -> bool
   end
@@ -156,11 +159,27 @@ module type PercistentDigraphAbstractLabeled_intf =
     include G_intf
 
     val empty : t
+
+    (* silently fails if vertex already binded *)
     val add_vertex : t -> vertex -> t
+
+    (* silently fails if vertex not binded *)
     val remove_vertex : t -> vertex -> t
-    val add_edge : t -> vertex -> vertex -> t
+
+    (* val add_edge : t -> vertex -> vertex -> t *)
+
+    (* add both vertices if not aleady binded
+     * replace previous binding of edge if already binded *)
     val add_edge_e : t -> edge -> t
+
+    (* removes all edges v1->v2 (0 or more), no matter the label
+     * does nothing if v1 is not in graph
+     * does nothing if v2 is not in graph *)
     val remove_edge : t -> vertex -> vertex -> t
+
+    (* removes 0 or 1 edge v1->v2, with respect to label
+     * does nothing if v1 is not in graph
+     * does nothing if v2 is not in graph *)
     val remove_edge_e : t -> edge -> t
   end
 

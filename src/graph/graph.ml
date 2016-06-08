@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/08 11:23:29 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/08 12:55:40 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/08 15:03:04 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -39,7 +39,8 @@ Graph_intf.Make_PercistentDigraphAbstractLabeled_intf =
   functor (E : Graph_intf.Ordered_type_dft_intf) ->
   struct
 
-    module V : Graph_intf.Vertex_intf =
+    module V : (Graph_intf.Vertex_intf
+               with type label = V.t)=
       struct
         type label = V.t
         type t = {
@@ -60,7 +61,9 @@ Graph_intf.Make_PercistentDigraphAbstractLabeled_intf =
       end
     type vertex = V.t
 
-    module E : Graph_intf.Edge_intf =
+    module E : (Graph_intf.Edge_intf
+                with type vertex = V.t
+                 and type label = E.t) =
       struct
         type label = E.t
         type vertex = V.t
@@ -72,10 +75,10 @@ Graph_intf.Make_PercistentDigraphAbstractLabeled_intf =
 
         let compare {src=srca ; dst=dsta ; label=labela}
                     {src=srcb ; dst=dstb ; label=labelb} =
-          V.compare srca srcb
-          |> (function | 0 -> V.compare dsta dstb
+          E.compare labela labelb
+          |> (function | 0 -> V.compare srca srcb
                        | res -> res)
-          |> (function | 0 -> E.compare labela labelb
+          |> (function | 0 -> V.compare dsta dstb
                        | res -> res)
 
         let dst {dst} =
@@ -92,12 +95,85 @@ Graph_intf.Make_PercistentDigraphAbstractLabeled_intf =
       end
     type edge = E.t
 
-    module VertexSet = Avl.Make(V)
+    module EdgeSet = Avl.Make(E)
     module VertexMap = Ftmap.Make(V)
 
     type t = {
         size : int
-      ; vertices : VertexSet.t VertexMap.t
+      ; vertices : EdgeSet.t VertexMap.t
       }
+
+    let is_empty {size} =
+      size = 0
+
+    let nb_vertex {size} =
+      size
+
+    let mem_vertex {vertices} v =
+      VertexMap.mem v vertices
+
+    let iter_vertex f {vertices} =
+      VertexMap.iter (fun v _ -> f v) vertices
+
+    let fold_vertex f {vertices} =
+      VertexMap.fold (fun v _ acc -> f v acc) vertices
+
+    let binary_find_succ_e f {vertices} v =
+      VertexMap.find_opt v vertices
+      |> (function
+          | None ->
+             None
+          | Some eset ->
+             EdgeSet.binary_find (fun e -> f (E.label e)) eset
+         )
+
+    let invariants g =
+      (*
+       * Check .size = cardinality map
+       * Check vertices.* = vertices.*.src
+       * Check vertices.*.dst mem vertices
+      *)
+      true
+
+    let empty =
+      {size = 0 ; vertices = VertexMap.empty}
+
+    let add_vertex ({size ; vertices} as g) v =
+      if mem_vertex g v
+      then g
+      else {size = size + 1 ; vertices = VertexMap.add v EdgeSet.empty vertices}
+
+    let remove_vertex ({size ; vertices} as g) v =
+      if not (mem_vertex g v)
+      then g
+      else {size = size - 1 ; vertices = VertexMap.remove v vertices}
+
+    let add_edge_e g e =
+      let src = E.src e in
+      let dst = E.dst e in
+      let g = add_vertex g (E.src e) in
+      let ({vertices} as g) = add_vertex g (E.dst e) in
+      let src_outedges = VertexMap.find_exn src vertices in
+      let src_outedges = EdgeSet.add e src_outedges in
+      let vertices = VertexMap.add src src_outedges vertices in
+      {g with vertices}
+
+    let remove_edge ({vertices} as g) src dst =
+      match VertexMap.find_opt src vertices with
+      | None -> g
+      | Some src_outedges ->
+         let is_dst e = V.compare (E.dst e) dst = 0 in
+         let src_outedges = EdgeSet.filter is_dst src_outedges in
+         let vertices = VertexMap.add src src_outedges vertices in
+         {g with vertices}
+
+    let remove_edge_e ({vertices} as g) e =
+      let src = E.src e in
+      match VertexMap.find_opt src vertices with
+      | None -> g
+      | Some src_outedges ->
+         let src_outedges = EdgeSet.remove e src_outedges in
+         let vertices = VertexMap.add src src_outedges vertices in
+         {g with vertices}
 
   end
