@@ -6,9 +6,11 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/03 18:32:06 by Ngo              ###   ########.fr       *)
+(*   Updated: 2016/06/08 15:56:09 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
+
+module Vertex = Shared_intf.Vertex
 
 module Make (* : Shared_intf.Make_algo_intf *) =
   functor (Key : Shared_intf.Key_intf) ->

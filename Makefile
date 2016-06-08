@@ -23,9 +23,9 @@ MODULES					:=
 # Sources Directories
 
 OBJDIR				:= _build
-SRCDIRS_TERMBYTE	:= 'src/shared' 'src/terminal' 'src/graph'
-SRCDIRS_TERMNAT		:= 'src/shared' 'src/terminal' 'src/graph'
-SRCDIRS_BROWSER		:= 'src/shared' 'src/browser' 'src/graph'
+SRCDIRS_TERMBYTE	:= 'src/shared' 'src/terminal' 'src/bt' 'src/graph'
+SRCDIRS_TERMNAT		:= 'src/shared' 'src/terminal' 'src/bt' 'src/graph'
+SRCDIRS_BROWSER		:= 'src/shared' 'src/browser' 'src/bt' 'src/graph'
 SRCDIRS_TESTAVL		:= 'src/bt' 'src/test/avl'
 SRCDIRS_TESTGRAPH	:= 'src/graph' 'src/test/graph' 'src/bt'
 # 'src/test/graph/ocamlgraph'

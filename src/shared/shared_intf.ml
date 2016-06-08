@@ -6,9 +6,11 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/03 18:21:19 by Ngo              ###   ########.fr       *)
+(*   Updated: 2016/06/08 15:55:02 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
+
+module Vertex = struct type t = { id : int } end
 
 module type Algo_intf =
   sig
