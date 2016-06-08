@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 16:33:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/08 14:53:29 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/08 15:41:02 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -154,7 +154,7 @@ module type G_intf =
 
 (* ************************************************************************** *)
 (* http://ocamlgraph.lri.fr/doc/Persistent.S.AbstractLabeled.html *********** *)
-module type PercistentDigraphAbstractLabeled_intf =
+module type PersistentDigraphAbstractLabeled_intf =
   sig
     include G_intf
 
@@ -183,9 +183,9 @@ module type PercistentDigraphAbstractLabeled_intf =
     val remove_edge_e : t -> edge -> t
   end
 
-module type Make_PercistentDigraphAbstractLabeled_intf =
+module type Make_PersistentDigraphAbstractLabeled_intf =
   functor (V : Any_type_intf) ->
   functor (E : Ordered_type_dft_intf) ->
-  PercistentDigraphAbstractLabeled_intf
+  PersistentDigraphAbstractLabeled_intf
   with type V.label = V.t
    and type E.label = E.t

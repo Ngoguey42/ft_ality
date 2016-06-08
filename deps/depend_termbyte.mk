@@ -1,9 +1,9 @@
-MKGEN_SRCSBIN_TERMBYTE := _build/src/shared/shared_intf.cmo _build/src/graph/graph.cmo _build/src/terminal/key.cmo _build/src/terminal/display.cmo _build/src/shared/algo.cmo _build/src/terminal/main.cmo
+MKGEN_SRCSBIN_TERMBYTE := _build/src/shared/shared_intf.cmo _build/src/graph/ftgraph.cmo _build/src/terminal/key.cmo _build/src/terminal/display.cmo _build/src/shared/algo.cmo _build/src/terminal/main.cmo
 
-_build/src/graph/graph.cmi : src/graph/graph.mli _build/src/graph/graph_intf.cmi | _build/src/graph/
-_build/src/graph/graph.cmo : src/graph/graph.ml _build/src/graph/graph.cmi _build/src/graph/graph_intf.cmi | _build/src/graph/
-_build/src/graph/graph.cmx : src/graph/graph.ml _build/src/graph/graph.cmi _build/src/graph/graph_intf.cmi | _build/src/graph/
-_build/src/graph/graph_intf.cmi : src/graph/graph_intf.mli | _build/src/graph/
+_build/src/graph/ftgraph.cmi : src/graph/ftgraph.mli _build/src/graph/ftgraph_intf.cmi | _build/src/graph/
+_build/src/graph/ftgraph.cmo : src/graph/ftgraph.ml _build/src/graph/ftgraph.cmi _build/src/graph/ftgraph_intf.cmi | _build/src/graph/
+_build/src/graph/ftgraph.cmx : src/graph/ftgraph.ml _build/src/graph/ftgraph.cmi _build/src/graph/ftgraph_intf.cmi | _build/src/graph/
+_build/src/graph/ftgraph_intf.cmi : src/graph/ftgraph_intf.mli | _build/src/graph/
 _build/src/shared/algo.cmo : src/shared/algo.ml _build/src/shared/shared_intf.cmo | _build/src/shared/
 _build/src/shared/algo.cmx : src/shared/algo.ml _build/src/shared/shared_intf.cmx | _build/src/shared/
 _build/src/shared/shared_intf.cmo : src/shared/shared_intf.ml | _build/src/shared/

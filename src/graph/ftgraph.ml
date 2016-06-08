@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/08 11:23:29 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/08 15:03:04 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/08 15:45:13 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -29,17 +29,17 @@ let v_counter = ref 0
 (*   end *)
 
 (* module type Make_AbstractVertex_intf = *)
-(*   functor (V : Graph_intf.Any_type_intf) -> *)
+(*   functor (V : Ftgraph_intf.Any_type_intf) -> *)
 (*   AbstractVertex_intf *)
 (*   with type label = V.t *)
 
-module Make_PercistentDigraphAbstractLabeled :
-Graph_intf.Make_PercistentDigraphAbstractLabeled_intf =
-  functor (V : Graph_intf.Any_type_intf) ->
-  functor (E : Graph_intf.Ordered_type_dft_intf) ->
+module Make_PersistentDigraphAbstractLabeled :
+Ftgraph_intf.Make_PersistentDigraphAbstractLabeled_intf =
+  functor (V : Ftgraph_intf.Any_type_intf) ->
+  functor (E : Ftgraph_intf.Ordered_type_dft_intf) ->
   struct
 
-    module V : (Graph_intf.Vertex_intf
+    module V : (Ftgraph_intf.Vertex_intf
                with type label = V.t)=
       struct
         type label = V.t
@@ -61,7 +61,7 @@ Graph_intf.Make_PercistentDigraphAbstractLabeled_intf =
       end
     type vertex = V.t
 
-    module E : (Graph_intf.Edge_intf
+    module E : (Ftgraph_intf.Edge_intf
                 with type vertex = V.t
                  and type label = E.t) =
       struct
@@ -130,7 +130,7 @@ Graph_intf.Make_PercistentDigraphAbstractLabeled_intf =
     let invariants g =
       (*
        * Check .size = cardinality map
-       * Check vertices.* = vertices.*.src
+       * Check vertices.{all vert} = vertices.{all vert}.{all edges}.src
        * Check vertices.*.dst mem vertices
       *)
       true
@@ -151,8 +151,8 @@ Graph_intf.Make_PercistentDigraphAbstractLabeled_intf =
     let add_edge_e g e =
       let src = E.src e in
       let dst = E.dst e in
-      let g = add_vertex g (E.src e) in
-      let ({vertices} as g) = add_vertex g (E.dst e) in
+      let g = add_vertex g src in
+      let ({vertices} as g) = add_vertex g dst in
       let src_outedges = VertexMap.find_exn src vertices in
       let src_outedges = EdgeSet.add e src_outedges in
       let vertices = VertexMap.add src src_outedges vertices in

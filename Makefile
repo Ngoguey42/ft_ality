@@ -28,6 +28,7 @@ SRCDIRS_TERMNAT		:= 'src/shared' 'src/terminal' 'src/graph'
 SRCDIRS_BROWSER		:= 'src/shared' 'src/browser' 'src/graph'
 SRCDIRS_TESTAVL		:= 'src/bt' 'src/test/avl'
 SRCDIRS_TESTGRAPH	:= 'src/graph' 'src/test/graph' 'src/bt'
+# 'src/test/graph/ocamlgraph'
 
 # python dict
 define MKGEN_BODY
@@ -114,6 +115,10 @@ else ifeq ($(BUILD_MODE),testavl)
 else ifeq ($(BUILD_MODE),testgraph)
   NAME			:= testgraph
   CC_LD			= $(CC_OCAMLOPT)
+  CC_OCAMLOPT	= ocamlfind ocamlopt
+  CC_OCAMLC		= ocamlfind ocamlc
+  LD_FLAGS		= -linkpkg
+  BASE_FLAGS	+= -package ocamlgraph
 
   SRCSBIN		= $(MKGEN_SRCSBIN_TESTGRAPH) #gen by mkgen
   INCLUDEDIRS	= $(addprefix $(OBJDIR)/,$(SRCDIRS_TESTGRAPH))
@@ -135,7 +140,7 @@ ifeq ($(UNAME),CYGWIN)
   endif
 else
   CC_OCAMLC		?= ocamlc.opt
-  CC_OCAMLOPT	= ocamlopt.opt
+  CC_OCAMLOPT	?= ocamlopt.opt
   CC_C			= clang
   CC_CPP		= clang++
   CC_AR			= ar
