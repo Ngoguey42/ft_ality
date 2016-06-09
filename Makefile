@@ -13,6 +13,13 @@ endef
 #TODO REMOVENEWLINE function
 #TODO ADDCOMMA function
 
+MODULE_RULES	:= $(addsuffix /.git,$(MODULES))
+PRINT_OK		= printf "  \033[32m$<\033[0m\n"
+PRINT_LINK		= printf "\033[32m$@\033[0m\n"
+PRINT_MAKE		= printf "\033[32mmake $@\033[0m\n"
+SHELL			:= /bin/bash
+TOPLEVEL_TMP_FILE := /tmp/make_top_tmp
+
 # ============================================================================ #
 # Modules
 
@@ -28,7 +35,6 @@ SRCDIRS_TERMNAT		:= 'src/shared' 'src/terminal' 'src/bt' 'src/graph'
 SRCDIRS_BROWSER		:= 'src/shared' 'src/browser' 'src/bt' 'src/graph'
 SRCDIRS_TESTAVL		:= 'src/bt' 'src/test/avl'
 SRCDIRS_TESTGRAPH	:= 'src/graph' 'src/test/graph' 'src/bt'
-# 'src/test/graph/ocamlgraph'
 
 # python dict
 define MKGEN_BODY
@@ -54,7 +60,7 @@ define MKGEN_BODY
     },
     'testgraph' : {
       'srcdirs' : [$(subst $(SPACE),$(COMMA)$(SPACE),$(SRCDIRS_TESTGRAPH))],
-      'objsuffixes' : {'mli': 'cmi', 'ml': 'cmx'}
+      'objsuffixes' : {'mli': 'cmi', 'ml': 'cmo'}
     },
   }
 }
@@ -114,8 +120,7 @@ else ifeq ($(BUILD_MODE),testavl)
 
 else ifeq ($(BUILD_MODE),testgraph)
   NAME			:= testgraph
-  CC_LD			= $(CC_OCAMLOPT)
-  CC_OCAMLOPT	= ocamlfind ocamlopt
+  CC_LD			= $(CC_OCAMLC)
   CC_OCAMLC		= ocamlfind ocamlc
   LD_FLAGS		= -linkpkg
   BASE_FLAGS	+= -package ocamlgraph
@@ -151,15 +156,6 @@ ifeq ($(CC_LD),$(CC_AR))
 else
   LD_FLAGS_		= -o $@ $(LD_FLAGS) $(BASE_FLAGS)
 endif
-
-
-# ============================================================================ #
-# Misc
-MODULE_RULES	:= $(addsuffix /.git,$(MODULES))
-PRINT_OK		= printf "  \033[32m$<\033[0m\n"
-PRINT_LINK		= printf "\033[32m$@\033[0m\n"
-PRINT_MAKE		= printf "\033[32mmake $@\033[0m\n"
-SHELL			:= /bin/bash
 
 # ============================================================================ #
 # Rules
@@ -238,8 +234,11 @@ ffclean:
 re: fclean
 	$(MAKE) all
 
+top: _all_git #quick and dirty
+	$(CC_LD) -only-show $(BASE_FLAGS) $(HEAD_FLAGS) $(LD_FLAGS) $(SRCSBIN) | sed 's/c\.opt//g' > $(TOPLEVEL_TMP_FILE)
+	rlwrap `cat $(TOPLEVEL_TMP_FILE)`
 
 # ============================================================================ #
 # Special targets
-.SILENT:
+# .SILENT:
 .PHONY: all clean fclean re _all_git _all_libs _all_separate_compilation _all_linkage $(LIBSMAKE)
