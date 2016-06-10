@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 16:33:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/10 07:30:43 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 08:10:26 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -140,7 +140,7 @@ module type G_intf =
     (* val fold_succ : (vertex -> 'a -> 'a) -> t -> vertex -> 'a -> 'a *)
     (* val fold_pred : (vertex -> 'a -> 'a) -> t -> vertex -> 'a -> 'a *)
 
-    (* val iter_succ_e : (edge -> unit) -> t -> vertex -> unit *)
+    val iter_succ_e : (edge -> unit) -> t -> vertex -> unit
     (* val fold_succ_e : (edge -> 'a -> 'a) -> t -> vertex -> 'a -> 'a *)
     (* val iter_pred_e : (edge -> unit) -> t -> vertex -> unit *)
     (* val fold_pred_e : (edge -> 'a -> 'a) -> t -> vertex -> 'a -> 'a *)

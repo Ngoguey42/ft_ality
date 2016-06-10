@@ -6,32 +6,11 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/08 11:23:29 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/10 07:47:36 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 08:16:49 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
 let v_counter = ref 0
-
-(* type 'a abstract_vertex = { *)
-(*     tag : int *)
-(*   ; label : 'a *)
-(*   } *)
-
-(* module type AbstractVertex_intf = *)
-(*   sig *)
-(*     type label *)
-(*     type t = label abstract_vertex *)
-(*     val compare : t -> t -> int *)
-(*     (\* val hash : 'a abstract_vertex *\) *)
-(*     (\* val equal : 'a abstract_vertex -> 'a abstract_vertex -> bool *\) *)
-(*     val label : t -> 'a *)
-(*     val create : label -> t *)
-(*   end *)
-
-(* module type Make_AbstractVertex_intf = *)
-(*   functor (V : Ftgraph_intf.Any_type_intf) -> *)
-(*   AbstractVertex_intf *)
-(*   with type label = V.t *)
 
 module Make_PersistentDigraphAbstractLabeled :
 Ftgraph_intf.Make_PersistentDigraphAbstractLabeled_intf =
@@ -117,6 +96,11 @@ Ftgraph_intf.Make_PersistentDigraphAbstractLabeled_intf =
 
     let fold_vertex f {vertices} =
       VertexMap.fold (fun v _ acc -> f v acc) vertices
+
+    let iter_succ_e f {vertices} v =
+      match VertexMap.find_opt v vertices with
+      | None -> invalid_arg "[ftgraph] iter_succ_e"
+      | Some eset -> EdgeSet.iter f eset
 
     let binary_find_succ_e f {vertices} v =
       VertexMap.find_opt v vertices

@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 16:51:20 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/10 07:34:58 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 08:24:18 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -15,8 +15,8 @@ module Vlb =
     type t = {
         name : string
       }
-    let print {name} =
-      Printf.eprintf "`%s`\n%!" name
+    let to_string {name} =
+      Printf.sprintf "`%s`" name
 
   end
 
@@ -29,6 +29,8 @@ module Elb =
       0
     let default =
       { name = "dflt" }
+    let to_string {name} =
+      Printf.sprintf "`%s`" name
   end
 
 module type Sig = Ftgraph_intf.PersistentDigraphAbstractLabeled_intf
@@ -85,16 +87,38 @@ module Both =
       let va, vb = G.V.create lb, FTG.V.create lb in
       G.add_vertex ga va, FTG.add_vertex gb vb
 
-      let iter_and_print_vertex (ga, gb) f =
-        G.iter_vertex (fun v ->
-            Printf.eprintf "  V: ";
-            Vlb.print (G.V.label v)
-          ) ga;
-        FTG.iter_vertex (fun v ->
-            Printf.eprintf "FTV: ";
-            Vlb.print (FTG.V.label v)
-          ) gb;
-        ()
+    let iter_and_print_vertex (ga, gb) =
+      G.iter_vertex (fun v ->
+          Printf.eprintf "  V: %10s succ[" (Vlb.to_string (G.V.label v));
+          G.iter_succ_e (fun e ->
+              let src, dst = G.E.src e, G.E.dst e in
+              if G.V.compare v src <> 0 then (
+                Printf.eprintf "Corrupted edge src %s\n%!" __LOC__;
+                exit(1)
+              );
+              Printf.eprintf "%s->%s;%!"
+                             (Elb.to_string (G.E.label e))
+                             (Vlb.to_string (G.V.label dst));
+              ()
+            ) ga v;
+          Printf.eprintf "]\n%!";
+        ) ga;
+      FTG.iter_vertex (fun v ->
+          Printf.eprintf "FTV: %10s succ[" (Vlb.to_string (FTG.V.label v));
+          FTG.iter_succ_e (fun e ->
+              let src, dst = FTG.E.src e, FTG.E.dst e in
+              if FTG.V.compare v src <> 0 then (
+                Printf.eprintf "Corrupted edge src %s\n%!" __LOC__;
+                exit(1)
+              );
+              Printf.eprintf "%s->%s;%!"
+                             (Elb.to_string (FTG.E.label e))
+                             (Vlb.to_string (FTG.V.label dst));
+              ()
+            ) gb v;
+          Printf.eprintf "]\n%!";
+        ) gb;
+      ()
 
   end
 
@@ -104,11 +128,11 @@ let run g =
   let g = Both.create_and_add_vertex g {Vlb.name = "loul"} in
   let g = Both.create_and_add_vertex g {Vlb.name = "hello"} in
   let g = Both.create_and_add_vertex g {Vlb.name = "truc"} in
-  let v1 = Both.V.create {Vlb.name = "custom"} in
-  let v2 = Both.V.create {Vlb.name = "custom"} in
+  let v1 = Both.V.create {Vlb.name = "src"} in
+  let v2 = Both.V.create {Vlb.name = "dst"} in
   let e = Both.E.create v1 {Elb.name = "e1"} v2 in
   let g = Both.add_edge_e g e in
-  Both.iter_and_print_vertex g
+  Both.iter_and_print_vertex g;
 
   ()
 
