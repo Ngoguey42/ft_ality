@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 14:59:50 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/06 16:19:10 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 08:00:54 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -59,7 +59,12 @@ and run_test (t, refe) depth =
       IntSet.iter check_order_ref refe';
       exit(1)
     );
-
+    for i = 1 to test_depth do
+      match IntAvl.mem i t', IntSet.mem i refe' with
+      | true, false -> Printf.eprintf "%d should be mem of avl\n%!" i; exit(1)
+      | false, true -> Printf.eprintf "%d should NOT be mem of avl\n%!" i; exit(1)
+      | _, _ -> ()
+    done;
     incr_depth (t', refe') depth
   )
   done;

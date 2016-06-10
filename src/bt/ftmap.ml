@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/08 11:58:46 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/08 14:31:36 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 08:05:14 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -83,10 +83,14 @@ module Make : Make_intf =
 
     let is_bst t =
       let rec aux = function
-	      | Empty -> true
-	      | Node(_, (k, _), Node(_, (k', _), _)) when k' < k -> false
-	      | Node(Node(_, (k', _), _), (k, _), _) when k' > k -> false
-	      | Node(a, _, b) -> (aux a) && (aux b)
+	      | Empty ->
+           true
+	      | Node(_, (k, _), Node(_, (k', _), _)) when Ord.compare k k' > 0 ->
+           false
+	      | Node(Node(_, (k', _), _), (k, _), _) when Ord.compare k k' < 0 ->
+           false
+	      | Node(a, _, b) ->
+           (aux a) && (aux b)
       in
       aux t
 
@@ -114,8 +118,8 @@ module Make : Make_intf =
     let mem k t =
       let rec aux = function
 	      | Empty -> false
-	      | Node(_, (k', _), _) when k = k' -> true
-	      | Node(a, (k', _), _) when k < k' -> aux a
+	      | Node(_, (k', _), _) when Ord.compare k k' = 0 -> true
+	      | Node(a, (k', _), _) when Ord.compare k k' < 0 -> aux a
 	      | Node(_, _, b) -> aux b
       in
       aux t
@@ -148,10 +152,14 @@ module Make : Make_intf =
     (* If already present, erase previous binding *)
     let add k v t =
       let rec aux = function
-	      | Node(a, (k', _), b) when k = k' -> Node(a, (k, v), b)
-	      | Node(a, ((k', _) as kv'), b) when k < k' -> balance (aux a) kv' b
-	      | Node(a, kv', b) -> balance a kv' (aux b)
-	      | _ -> Node(Empty, (k, v), Empty)
+	      | Node(a, (k', _), b) when Ord.compare k k' = 0 ->
+           Node(a, (k, v), b)
+	      | Node(a, ((k', _) as kv'), b) when Ord.compare k k' < 0 ->
+           balance (aux a) kv' b
+	      | Node(a, kv', b) ->
+           balance a kv' (aux b)
+	      | _ ->
+           Node(Empty, (k, v), Empty)
       in
       aux t
 
@@ -168,11 +176,16 @@ module Make : Make_intf =
 							 balance a minb (aux b kb)
       and aux t k =
 	      match t with
-	      | Node(Empty, (k', _), Empty) when k = k' -> Empty
-	      | Node(a, (k', _), b) when k = k' -> merge a b
-	      | Node(a, ((k', _) as kv'), b) when k < k' -> balance (aux a k) kv' b
-	      | Node(a, kv', b) -> balance a kv' (aux b k)
-	      | _ -> failwith "doesn't exists"
+	      | Node(Empty, (k', _), Empty) when Ord.compare k k' = 0 ->
+           Empty
+	      | Node(a, (k', _), b) when Ord.compare k k' = 0 ->
+           merge a b
+	      | Node(a, ((k', _) as kv'), b) when Ord.compare k k' < 0 ->
+           balance (aux a k) kv' b
+	      | Node(a, kv', b) ->
+           balance a kv' (aux b k)
+	      | _ ->
+           failwith "doesn't exists"
       in
       aux t k
 

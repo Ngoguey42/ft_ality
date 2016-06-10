@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 14:59:46 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/08 14:55:59 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 08:01:57 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -95,8 +95,8 @@ module Make : Make_intf =
     let is_bst t =
       let rec aux = function
 	      | Empty -> true
-	      | Node(_, v, Node(_, v', _)) when v' < v -> false
-	      | Node(Node(_, v', _), v, _) when v' > v -> false
+	      | Node(_, v, Node(_, v', _)) when Ord.compare v v' > 0 -> false
+	      | Node(Node(_, v', _), v, _) when Ord.compare v v' < 0 -> false
 	      | Node(a, _, b) -> (aux a) && (aux b)
       in
       aux t
@@ -125,8 +125,8 @@ module Make : Make_intf =
     let mem v t =
       let rec aux = function
 	      | Empty -> false
-	      | Node(_, v', _) when v = v' -> true
-	      | Node(a, v', _) when v < v' -> aux a
+	      | Node(_, v', _) when Ord.compare v v' = 0 -> true
+	      | Node(a, v', _) when Ord.compare v v' < 0  -> aux a
 	      | Node(_, _, b) -> aux b
       in
       aux t
@@ -159,8 +159,8 @@ module Make : Make_intf =
     (* If already present, erase previous binding *)
     let add v t =
       let rec aux = function
-	      | Node(a, v', b) when v = v' -> Node(a, v, b)
-	      | Node(a, v', b) when v < v' -> balance (aux a) v' b
+	      | Node(a, v', b) when Ord.compare v v' = 0 -> Node(a, v, b)
+	      | Node(a, v', b) when Ord.compare v v' < 0 -> balance (aux a) v' b
 	      | Node(a, v', b) -> balance a v' (aux b)
 	      | _ -> Node(Empty, v, Empty)
       in
@@ -179,9 +179,9 @@ module Make : Make_intf =
 							 balance a minb (aux b minb)
       and aux t v =
 	      match t with
-	      | Node(Empty, v', Empty) when v = v' -> Empty
-	      | Node(a, v', b) when v = v' -> merge a b
-	      | Node(a, v', b) when v < v' -> balance (aux a v) v' b
+	      | Node(Empty, v', Empty) when Ord.compare v v' = 0 -> Empty
+	      | Node(a, v', b) when Ord.compare v v' = 0 -> merge a b
+	      | Node(a, v', b) when Ord.compare v v' < 0 -> balance (aux a v) v' b
 	      | Node(a, v', b) -> balance a v' (aux b v)
 	      | _ -> failwith "doesn't exists"
       in
