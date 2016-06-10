@@ -6,36 +6,57 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/10 11:40:21 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 13:41:01 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
 module Make : Shared_intf.Make_algo_intf =
   functor (Key : Shared_intf.Key_intf) ->
   functor (Graph : Shared_intf.Graph_intf
-           with type Elabel.t = Key.t) ->
+           with type Elabel.key = Key.t) ->
   functor (Display : Shared_intf.Display_intf
            with type key = Key.t
            with type vertex = Graph.V.t) ->
   struct
     type t = {
-        tamere : int
+        g : Graph.t
       }
     type key = Key.t
+
+    let keys_of_channel chan =
+      Printf.eprintf "\t  read bindings from file and build list\n%!";
+      Printf.eprintf "\t    foreach shortcuts: call Key.of_string()\n%!";
+      [ Key.of_strings ("Left", "left")
+      ; Key.of_strings ("[BK]", "a") ]
+
+    let graph_of_channel chan =
+      let g = Graph.empty in
+      Printf.eprintf "\t  read fsa from file and build graph\n%!";
+      Printf.eprintf "\t    add an origin vertex to graph\n%!";
+      let orig = Graph.V.create Graph.Vlabel.Step in
+      let g = Graph.add_vertex g orig in
+
+      Printf.eprintf "\t    foreach combos:\n%!";
+      Printf.eprintf "\t      foreach simultaneous presses required by combo\n%!";
+      Printf.eprintf "\t        insert a vertex (if missing)\n%!";
+      Printf.eprintf "\t          if last key: tag vertex as Combo\n%!";
+      Printf.eprintf "\t          else: tag vertex as Step\n%!";
+      Printf.eprintf "\t        create an edge to this vertex\n%!";
+      Printf.eprintf "\t          label containing Keys (set of simultaneous keys to be pressed)\n%!";
+      Printf.eprintf "\t          if first key: link src with origin\n%!";
+      Printf.eprintf "\t          else: link src previous Step\n%!";
+
+      Printf.eprintf "\t    declare all vertices with Display.declare_vertex()\n%!";
+      Printf.eprintf "\t    declare all edges with Display.declare_edge()\n%!";
+      g
 
     let create chan =
       Printf.eprintf "\tAlgo.create()\n%!";
       Printf.eprintf "\t  Read channel and init self data\n%!";
-      Printf.eprintf "\t  Create a graph representing the FSA\n%!";
-      Printf.eprintf "\t  foreach shortcuts: call Key.of_string() + Display.declare_key()\n%!";
-      let k = Key.of_string "" in
-      Display.declare_key k;
-      Printf.eprintf "\t  foreach vertices: call Display.declare_vertex()\n%!";
-      let v = Graph.V.create Graph.Vlabel.Step in
-      Display.declare_vertex v;
-      Printf.eprintf "\t  foreach edges: call Display.declare_edge()\n%!";
+      let keys = keys_of_channel chan in
+      let g = graph_of_channel chan in
       Printf.eprintf "\t  Return inner state saved in type t for later use\n%!";
-      {tamere = 42}
+      {g}, keys
 
     let on_key_press k env =
       Printf.eprintf "\tAlgo.on_key_press()\n%!";

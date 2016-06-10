@@ -20,6 +20,11 @@
 > - https://www.youtube.com/watch?v=RjOCRYdg8BY
 > - https://www.youtube.com/watch?v=224plb3bCog
 
+<BR>
+> OCaml Curses / NCurses
+> - http://www.nongnu.org/ocaml-tmk/doc/Curses.html
+> - http://git.savannah.gnu.org/cgit/ocaml-tmk.git/tree/curses.mli
+
 
 # How to:
 

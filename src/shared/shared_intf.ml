@@ -6,18 +6,26 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/10 11:40:03 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 13:47:03 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
 module type Graph_intf =
   sig
     module Vlabel : sig
-      type t = Step | Spell
+      type combo = {
+          name : string
+        }
+      type t = Step | Combo of combo
     end
 
     module Elabel : sig
-      type t
+      type key
+
+      module KeySet : Avl.S
+             with type elt = key
+
+      type t = KeySet.t
     end
     include Ftgraph_intf.PersistentDigraphAbstractLabeled_intf
             with type V.label = Vlabel.t
@@ -29,7 +37,7 @@ module type Algo_intf =
     type t
     type key
 
-    val create : in_channel -> t
+    val create : in_channel -> t * key list
     val on_key_press : key -> t -> t
   end
 
@@ -48,14 +56,16 @@ module type Key_intf =
   sig
     type t
 
-    val of_string : string -> t
-    val equal : t -> t -> bool
+    val default : t
+    val of_strings : string * string -> t
+    (* val equal : t -> t -> bool *)
+    val compare : t -> t -> int
   end
 
 module type Make_algo_intf =
   functor (Key : Key_intf) ->
   functor (Graph : Graph_intf
-           with type Elabel.t = Key.t) ->
+           with type Elabel.key = Key.t) ->
   functor (Display : Display_intf
            with type key = Key.t
            with type vertex = Graph.V.t) ->
@@ -65,4 +75,4 @@ module type Make_algo_intf =
 module type Make_graph_intf =
   functor (Key : Key_intf) ->
   Graph_intf
-  with type Elabel.t = Key.t
+  with type Elabel.key = Key.t
