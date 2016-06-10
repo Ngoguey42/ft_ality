@@ -1,79 +1,90 @@
 
-module type Foo_intf =
+module type Display_intf =
+  sig
+    type algo
+    type vertex
+    val run : unit -> unit
+    val declare_vertex : vertex -> unit
+  end
+
+module type Algo_intf =
   sig
     type t
-    val a : unit -> unit
+    type vertex
+    module Display : Display_intf
+    val create : unit -> t
   end
 
-module type Bar_intf =
-  sig
-    type foo
-    val b : foo -> unit
-  end
+module type Make_algo_intf =
+  functor (Display : Display_intf) ->
+  Algo_intf
 
-module type Make_foo_intf =
-  functor (Bar : Bar_intf) ->
-  Foo_intf
-
-module type Make_bar_intf =
-  functor (Foo : Foo_intf) ->
-  Bar_intf
-  with type foo = Foo.t
+module type Make_display_intf =
+  functor (Algo : Algo_intf) ->
+  Display_intf
+  with type algo = Algo.t
+  with type vertex = Algo.vertex
 
 
-(* module Make_foo : Make_foo_intf = *)
-(*   functor (Bar : Bar_intf) -> *)
-(*   struct *)
+module type GigaMake_algo_intf =
+  functor (Make_display : Make_display_intf) ->
+  Algo_intf
 
-(*     type t = { *)
-(*         abstract_field : bool *)
-(*       } *)
-
-(*     let a () = *)
-(*       Bar.b {abstract_field = true} *)
-
-(*   end *)
-
-module GigaMake_foo =
-  functor (Make_bar : Make_bar_intf) ->
+module GigaMake_algo : GigaMake_algo_intf =
+  functor (Make_display : Make_display_intf) ->
   struct
 
-    module rec Foo : Foo_intf =
+    module rec Algo : Algo_intf =
       struct
         type t = {
             abstract_field : bool
           }
 
-        module Bar = Make_bar(Foo)
+        type vertex = {
+            name : string
+          }
 
-        let a _ =
-          Bar.b {abstract_field = true}
+        module Display = Make_display(Algo)
+
+        let create _ =
+          Printf.eprintf "Algo create\n%!";
+          let v = {name = "v1"} in
+          Display.declare_vertex v;
+          {abstract_field = true}
 
       end
 
-    include Foo
+    include Algo
 
   end
 
-module Make_bar : Make_bar_intf =
-  functor (Foo : Foo_intf) ->
+module Make_display : Make_display_intf =
+  functor (Algo : Algo_intf) ->
   struct
-    type foo = Foo.t
+    type algo = Algo.t
+    type vertex = Algo.vertex
 
-    let b _ =
-      Printf.eprintf "worked\n%!";
-      Foo.a ()
+    let declare_vertex v =
+      Printf.eprintf "Display declare vertex\n%!";
+      ()
+
+    let run () =
+      Printf.eprintf "Display run\n%!";
+      let dat = Algo.create () in
+      ()
+
 
   end
 
-module Foo = GigaMake_foo(Make_bar)
+module Algo = GigaMake_algo(Make_display)
 
 let () =
-  Foo.a ()
+  Algo.Display.run ()
+  (* Algo.a () *)
 
 
-(* module Make_foo = *)
-(*   functor (Bar : Bar_intf) -> *)
+(* module Make_algo = *)
+(*   functor (Display : Display_intf) -> *)
 (*   struct *)
 
 (*     type t = { *)
@@ -81,72 +92,72 @@ let () =
 (*       } *)
 
 (*     module Impl = *)
-(*       functor (Bar : Bar_intf with type foo = t) -> *)
+(*       functor (Display : Display_intf with type algo = t) -> *)
 (*       struct *)
 
 (*       end *)
 
-(*     include Impl(Bar) *)
+(*     include Impl(Display) *)
 
 (*   end *)
 
-(* module Make_foo : Make_foo_intf = *)
+(* module Make_algo : Make_algo_intf = *)
 (* module rec Wrap *)
 (*            : *)
 (*              sig *)
-(*                module rec Foo : (Foo_intf) *)
-(*                   and Bar : (Bar_intf *)
-(*                              with type foo = Foo.t) *)
+(*                module rec Algo : (Algo_intf) *)
+(*                   and Display : (Display_intf *)
+(*                              with type algo = Algo.t) *)
 (*              end *)
 (*   = *)
 (*   struct *)
 
-(* module rec Foo : Foo_intf = *)
-(*   (functor (Bar : Bar_intf) -> *)
+(* module rec Algo : Algo_intf = *)
+(*   (functor (Display : Display_intf) -> *)
 (*    struct *)
 (*      type t = { *)
 (*          abstract_field : bool *)
 (*        } *)
 (*      let a () = *)
-(*        Bar.b {abstract_field = true}; *)
+(*        Display.b {abstract_field = true}; *)
 (*        () *)
-(*    end)(Bar) *)
+(*    end)(Display) *)
 
-(*    and Bar : *)
+(*    and Display : *)
 (*          sig *)
-(*            type foo = Foo.t *)
-(*            val b : foo -> unit *)
-(*          end with type foo = Foo.t *)
+(*            type algo = Algo.t *)
+(*            val b : algo -> unit *)
+(*          end with type algo = Algo.t *)
 (*      = *)
-(*      (functor (Foo : Foo_intf) -> *)
+(*      (functor (Algo : Algo_intf) -> *)
 (*       struct *)
-(*         type foo = Foo.t *)
+(*         type algo = Algo.t *)
 (*         let b _ = *)
 (*           Printf.eprintf "Super\n%!" *)
-(*       end)(Foo) *)
+(*       end)(Algo) *)
 
   (* end *)
 
-(* module type Make_bar_intf = *)
-(*   functor (Foo : Foo_intf) -> *)
+(* module type Make_display_intf = *)
+(*   functor (Algo : Algo_intf) -> *)
 (*   sig *)
-(*     include Bar_intf with type foo = Foo.t *)
+(*     include Display_intf with type algo = Algo.t *)
 (*   end *)
 
 
 
-(* module Make_bar : Make_bar_intf = *)
-(*   functor (Foo : Foo_intf) -> *)
+(* module Make_display : Make_display_intf = *)
+(*   functor (Algo : Algo_intf) -> *)
 (*   struct *)
-(*     (\* module Foo_proxy = Foo *\) *)
+(*     (\* module Algo_proxy = Algo *\) *)
 
-(*     type foo = Foo.t *)
+(*     type algo = Algo.t *)
 (*     let b _ = *)
 (*       () *)
 (*   end *)
 
-(* module rec Foo : Foo_intf = Make_foo(Bar) *)
-(*    and Bar : (Bar_intf with type foo = Foo.t) = Make_bar(Foo) *)
+(* module rec Algo : Algo_intf = Make_algo(Display) *)
+(*    and Display : (Display_intf with type algo = Algo.t) = Make_display(Algo) *)
 
 let () =
   Printf.eprintf "HW\n%!";
