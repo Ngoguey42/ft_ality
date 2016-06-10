@@ -6,16 +6,20 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/03 18:31:57 by Ngo              ###   ########.fr       *)
+(*   Updated: 2016/06/10 11:44:40 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
-module Make (*: Shared_intf.Make_display_intf*) =
+module Make : Term_intf.Make_display_intf =
+  functor (Key : Term_intf.Key_intf) ->
+  functor (Graph : Shared_intf.Graph_intf
+           with type Elabel.t = Key.t) ->
   functor (Algo : Shared_intf.Algo_intf
            with type key = Key.t) ->
   struct
 
     type key = Key.t
+    type vertex = Graph.V.t
 
     let declare_key _ =
       Printf.eprintf "\t\tDisplay.declare_key()\n%!";

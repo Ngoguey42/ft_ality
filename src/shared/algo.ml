@@ -6,16 +6,17 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/08 15:56:09 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 11:40:21 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
-module Vertex = Shared_intf.Vertex
-
-module Make (* : Shared_intf.Make_algo_intf *) =
+module Make : Shared_intf.Make_algo_intf =
   functor (Key : Shared_intf.Key_intf) ->
+  functor (Graph : Shared_intf.Graph_intf
+           with type Elabel.t = Key.t) ->
   functor (Display : Shared_intf.Display_intf
-           with type key = Key.t) ->
+           with type key = Key.t
+           with type vertex = Graph.V.t) ->
   struct
     type t = {
         tamere : int
@@ -30,7 +31,8 @@ module Make (* : Shared_intf.Make_algo_intf *) =
       let k = Key.of_string "" in
       Display.declare_key k;
       Printf.eprintf "\t  foreach vertices: call Display.declare_vertex()\n%!";
-      Display.declare_vertex {Vertex.id = 42};
+      let v = Graph.V.create Graph.Vlabel.Step in
+      Display.declare_vertex v;
       Printf.eprintf "\t  foreach edges: call Display.declare_edge()\n%!";
       Printf.eprintf "\t  Return inner state saved in type t for later use\n%!";
       {tamere = 42}
@@ -38,7 +40,7 @@ module Make (* : Shared_intf.Make_algo_intf *) =
     let on_key_press k env =
       Printf.eprintf "\tAlgo.on_key_press()\n%!";
       Printf.eprintf "\t  update inner states and notify Display for vertex focus\n%!";
-      Display.focus_vertex {Vertex.id = 42};
+      (* Display.focus_vertex {Vertex.id = 42}; *)
       Printf.eprintf "\t  Return inner state saved in type t for later use\n%!";
       env
 

@@ -6,10 +6,8 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 16:36:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/03 18:23:24 by Ngo              ###   ########.fr       *)
+(*   Updated: 2016/06/10 08:48:59 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
-include Shared_intf.Key_intf
-
-val of_bytes : bytes -> t
+include Term_intf.Key_intf
