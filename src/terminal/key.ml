@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 16:34:22 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/10 14:45:48 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 15:29:24 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -25,7 +25,8 @@ let to_string {action; id} =
   Printf.sprintf "%s:%d" action id
 
 let compare a b =
-  a.id - b.id
+  compare a.action b.action
+  (* a.id - b.id *)
 
 (* TODO: use ncurse or sdl instead? *)
 (* Bytes read in terminal are converted to t *)

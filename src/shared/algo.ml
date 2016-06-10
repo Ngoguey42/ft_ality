@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/10 15:20:38 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 15:33:38 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -29,7 +29,7 @@ module Make : Shared_intf.Make_algo_intf =
                                  end)
 
     let keys_of_channel chan =
-      Printf.eprintf "\t  read bindings from file and build (string * Key.t) Map\n%!";
+      Printf.eprintf "\t  read bindings from file\n%!";
       Printf.eprintf "\t    build a (Key.t list) to return to Display\n%!";
       Printf.eprintf "\t    build a ((string * Key.t) Map) temporary\n%!";
       Printf.eprintf "\t    foreach shortcuts: call Key.of_string()\n%!";
