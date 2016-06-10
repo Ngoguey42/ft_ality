@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 14:59:46 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/10 08:01:57 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 14:25:25 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -59,7 +59,7 @@ module type S =
     (* val choose : t -> elt *)
     (* val split : elt -> t -> t * bool * t *)
     (* val find : elt -> t -> elt *)
-    (* of_list (Set only) *)
+    val of_list : elt list -> t
     (* map, mapi (Map only) *)
 
 
@@ -238,4 +238,7 @@ module Make : Make_intf =
       in
       aux t
 
+    let of_list l =
+      List.fold_left (fun acc e ->
+          add e acc) empty l
   end

@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/10 13:47:03 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 14:35:26 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -17,15 +17,18 @@ module type Graph_intf =
           name : string
         }
       type t = Step | Combo of combo
+
+      val of_combo_name : string -> t
+      val to_string : t -> string
     end
 
     module Elabel : sig
       type key
-
       module KeySet : Avl.S
              with type elt = key
-
       type t = KeySet.t
+
+      val of_key_list : key list -> t
     end
     include Ftgraph_intf.PersistentDigraphAbstractLabeled_intf
             with type V.label = Vlabel.t

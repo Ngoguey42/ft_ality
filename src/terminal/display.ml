@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/10 13:25:30 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 14:35:05 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -26,9 +26,9 @@ module Make : Term_intf.Make_display_intf =
       Printf.eprintf "\t\t  Print key info to terminal\n%!";
       ()
 
-    let declare_vertex _ =
-      Printf.eprintf "\t\tDisplay.declare_vertex()\n%!";
-      Printf.eprintf "\t\t  (Do nothing ?)\n%!";
+    let declare_vertex v =
+      Printf.eprintf "\t\tDisplay.declare_vertex(%s)\n%!"
+                     (Graph.V.label v |> Graph.Vlabel.to_string);
       ()
     let focus_vertex _ =
       Printf.eprintf "\t\tDisplay.focus_vertex()\n%!";
