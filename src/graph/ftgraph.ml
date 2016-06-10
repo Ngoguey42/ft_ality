@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/08 11:23:29 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/10 08:16:49 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 14:50:21 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -101,6 +101,12 @@ Ftgraph_intf.Make_PersistentDigraphAbstractLabeled_intf =
       match VertexMap.find_opt v vertices with
       | None -> invalid_arg "[ftgraph] iter_succ_e"
       | Some eset -> EdgeSet.iter f eset
+
+    (* val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a *)
+    let fold_succ_e f {vertices} v acc =
+      match VertexMap.find_opt v vertices with
+      | None -> invalid_arg "[ftgraph] fold_succ_e"
+      | Some eset -> EdgeSet.fold f eset acc
 
     let binary_find_succ_e f {vertices} v =
       VertexMap.find_opt v vertices

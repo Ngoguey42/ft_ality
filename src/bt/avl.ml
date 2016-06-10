@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 14:59:46 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/10 14:25:25 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 15:24:59 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -239,6 +239,11 @@ module Make : Make_intf =
       aux t
 
     let of_list l =
+      (* Printf.eprintf "of_list: %d\n%!" (List.length l); *)
       List.fold_left (fun acc e ->
+          (* Printf.eprintf "  step: cardi=%d\n%!" (cardinal acc); *)
           add e acc) empty l
+      (* |> cardinal *)
+      (* |> Printf.eprintf "cardi: %d\n%!"; *)
+      (* empty *)
   end

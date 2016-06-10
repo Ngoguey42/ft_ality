@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/10 08:39:51 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/10 13:22:14 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 14:37:21 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -25,4 +25,5 @@ module type Make_display_intf =
            with type key = Key.t) ->
   (Shared_intf.Display_intf
    with type key = Key.t
-   with type vertex = Graph.V.t)
+   with type vertex = Graph.V.t
+   with type edge = Graph.E.t)

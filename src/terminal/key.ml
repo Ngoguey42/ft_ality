@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 16:34:22 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/10 13:46:45 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 14:45:48 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -21,8 +21,8 @@ let of_strings (action, key) =
   Printf.eprintf "\t\tKey.of_string((\"%s\", \"%s\"))\n%!" action key;
   {id = 42; action}
 
-(* let equal a b = *)
-(*   a = b *)
+let to_string {action; id} =
+  Printf.sprintf "%s:%d" action id
 
 let compare a b =
   a.id - b.id
