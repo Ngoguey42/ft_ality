@@ -6,18 +6,21 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 16:51:20 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/08 16:49:17 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 07:34:58 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
-module V =
+module Vlb =
   struct
     type t = {
         name : string
       }
+    let print {name} =
+      Printf.eprintf "`%s`\n%!" name
+
   end
 
-module E =
+module Elb =
   struct
     type t = {
         name : string
@@ -30,48 +33,86 @@ module E =
 
 module type Sig = Ftgraph_intf.PersistentDigraphAbstractLabeled_intf
 module FTG : (Sig
-              with type V.label = V.t) =
-  Ftgraph.Make_PersistentDigraphAbstractLabeled(V)(E)
-module G : (Sig with type V.label = V.t) =
+              with type V.label = Vlb.t
+               and type E.label = Elb.t) =
+  Ftgraph.Make_PersistentDigraphAbstractLabeled(Vlb)(Elb)
+module G : (Sig with type V.label = Vlb.t
+                 and type E.label = Elb.t) =
   struct
-    include Graph.Persistent.Digraph.AbstractLabeled(V)(E)
+    include Graph.Persistent.Digraph.AbstractLabeled(Vlb)(Elb)
 
     let invariants _ = true
     let binary_find_succ_e _ _ _ = None
   end
 
+
 module Both =
   struct
-    type t = FTG.t * G.t
-    type vertex = FTG.vertex * G.vertex
-
     module V =
       struct
-        let create label =
-          FTG.V.create label,
-          G.V.create label
+        let create lb =
+          G.V.create lb, FTG.V.create lb
+
       end
 
-    (* let iter_vertex f (ftg, g) = *)
-    (*   FTG.iter_vertex f ftg, *)
-    (*   G.iter_vertex f g *)
+    module E =
+      struct
+        let create (v1a, v1b) lb (v2a, v2b) =
+          Printf.eprintf "%s\n%!" __LOC__;
+          let ea = G.E.create v1a lb v2a in
+          Printf.eprintf "%s\n%!" __LOC__;
+          let eb = FTG.E.create v1b lb v2b in
+          Printf.eprintf "%s\n%!" __LOC__;
+          ea, eb
 
-    let empty = FTG.empty, G.empty
+      end
 
-    let add_vertex (ftg, g) (ftgv, gv) =
-      FTG.add_vertex ftg ftgv,
-      G.add_vertex g gv
+    let add_vertex (ga, gb) (va, vb) =
+      Printf.eprintf "%s\n%!" __LOC__;
+      let ga = G.add_vertex ga va in
+      let gb = FTG.add_vertex gb vb in
+      ga, gb
 
+    let add_edge_e (ga, gb) (ea, eb) =
+      Printf.eprintf "%s\n%!" __LOC__;
+      let ga = G.add_edge_e ga ea in
+      Printf.eprintf "%s\n%!" __LOC__;
+      let gb = FTG.add_edge_e gb eb in
+      Printf.eprintf "%s\n%!" __LOC__;
+      ga, gb
+
+    let create_and_add_vertex (ga, gb) lb =
+      let va, vb = G.V.create lb, FTG.V.create lb in
+      G.add_vertex ga va, FTG.add_vertex gb vb
+
+      let iter_and_print_vertex (ga, gb) f =
+        G.iter_vertex (fun v ->
+            Printf.eprintf "  V: ";
+            Vlb.print (G.V.label v)
+          ) ga;
+        FTG.iter_vertex (fun v ->
+            Printf.eprintf "FTV: ";
+            Vlb.print (FTG.V.label v)
+          ) gb;
+        ()
 
   end
 
+
+
 let run g =
-  let g = Both.V.create {V.name = "v1"} in
-  (* Both.fold_vertex *)
+  let g = Both.create_and_add_vertex g {Vlb.name = "loul"} in
+  let g = Both.create_and_add_vertex g {Vlb.name = "hello"} in
+  let g = Both.create_and_add_vertex g {Vlb.name = "truc"} in
+  let v1 = Both.V.create {Vlb.name = "custom"} in
+  let v2 = Both.V.create {Vlb.name = "custom"} in
+  let e = Both.E.create v1 {Elb.name = "e1"} v2 in
+  let g = Both.add_edge_e g e in
+  Both.iter_and_print_vertex g
+
   ()
 
-
 let () =
-  run Both.empty;
+  run (G.empty, FTG.empty);
   Printf.eprintf "PASSING!!!\n%!";
   ()

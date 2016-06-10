@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/08 11:23:29 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/08 15:45:13 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 07:47:36 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -49,7 +49,7 @@ Ftgraph_intf.Make_PersistentDigraphAbstractLabeled_intf =
           }
 
         let compare {tag=a} {tag=b} =
-          b - a
+          a - b
 
         let label {label} =
           label

@@ -240,5 +240,5 @@ top: _all_git #quick and dirty
 
 # ============================================================================ #
 # Special targets
-# .SILENT:
+.SILENT:
 .PHONY: all clean fclean re _all_git _all_libs _all_separate_compilation _all_linkage $(LIBSMAKE)

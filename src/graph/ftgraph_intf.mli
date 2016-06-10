@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 16:33:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/08 15:41:02 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/10 07:30:43 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -105,7 +105,8 @@ module type G_intf =
     type t
     module V : Vertex_intf
     type vertex = V.t
-    module E : Edge_intf
+    module E : (Edge_intf
+               with type vertex = V.t)
     type edge = E.t
     (* val is_directed : bool *)
 
