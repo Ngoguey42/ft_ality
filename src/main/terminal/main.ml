@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/10 11:51:10 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/10 14:37:54 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/11 18:07:50 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -17,7 +17,7 @@ module rec D : (Shared_intf.Display_intf
    and A : (Shared_intf.Algo_intf
             with type key = Key.t) = Algo.Make(Key)(G)(D)
    and G : (Shared_intf.Graph_intf
-            with type Elabel.key = Key.t) = Graph_impl.Make(Key)
+            with type key = Key.t) = Graph_impl.Make(Key)
 
 let () =
   D.run ()

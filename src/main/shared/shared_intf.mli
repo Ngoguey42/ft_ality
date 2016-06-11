@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/11 10:13:48 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/11 17:20:26 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -15,25 +15,31 @@
 (* Module Graph (Common to all displays) *)
 module type Graph_intf =
   sig
+    type key
+    module KeySet : Avl.S
+           with type elt = key
+
+    val string_of_keyset : KeySet.t -> string
+
     (* Vertex Label (attached to G.V.t) *)
     module Vlabel : sig
-      type combo = {
-          name : string
+      type state = Step | Spell of string
+      type t = {
+          cost : KeySet.t list
+        ; state : state
         }
-      type t = Step of string | Combo of combo
 
-      val of_combo_name : string -> t
+      val create_spell : KeySet.t list -> string -> t
+      val create_step : KeySet.t list -> t
       val to_string : t -> string
     end
 
     (* Edge Label (attached to G.E.t) *)
     module Elabel : sig
-      type key
-      module KeySet : Avl.S
-             with type elt = key
       type t = KeySet.t
 
-      val of_key_list : key list -> t
+      val compare : t -> t -> int
+      val default : t
       val to_string : t -> string
     end
 
@@ -82,7 +88,7 @@ module type Key_intf =
 module type Make_algo_intf =
   functor (Key : Key_intf) ->
   functor (Graph : Graph_intf
-           with type Elabel.key = Key.t) ->
+           with type key = Key.t) ->
   functor (Display : Display_intf
            with type key = Key.t
            with type vertex = Graph.V.t
@@ -93,4 +99,4 @@ module type Make_algo_intf =
 module type Make_graph_intf =
   functor (Key : Key_intf) ->
   Graph_intf
-  with type Elabel.key = Key.t
+  with type key = Key.t

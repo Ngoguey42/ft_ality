@@ -6,14 +6,14 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/10 14:59:08 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/11 18:07:54 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
 module Make : Term_intf.Make_display_intf =
   functor (Key : Term_intf.Key_intf) ->
   functor (Graph : Shared_intf.Graph_intf
-           with type Elabel.key = Key.t) ->
+           with type key = Key.t) ->
   functor (Algo : Shared_intf.Algo_intf
            with type key = Key.t) ->
   struct

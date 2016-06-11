@@ -6,14 +6,14 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/10 15:33:38 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/11 18:14:11 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
 module Make : Shared_intf.Make_algo_intf =
   functor (Key : Shared_intf.Key_intf) ->
   functor (Graph : Shared_intf.Graph_intf
-           with type Elabel.key = Key.t) ->
+           with type key = Key.t) ->
   functor (Display : Shared_intf.Display_intf
            with type key = Key.t
            with type vertex = Graph.V.t
@@ -49,7 +49,7 @@ module Make : Shared_intf.Make_algo_intf =
       Printf.eprintf "\t  EXEMPLE WITH: Super Punch:[BK],[FK]+Left\n%!";
       Printf.eprintf "\t  read fsa from file and build graph\n%!";
       Printf.eprintf "\t    add an origin vertex to graph\n%!";
-      let orig = Graph.V.create (Graph.Vlabel.Step "origin") in
+      let orig = Graph.V.create (Graph.Vlabel.create_step []) in
       let g = Graph.add_vertex g orig in
 
       Printf.eprintf "\t    foreach combos:\n%!";
@@ -62,16 +62,21 @@ module Make : Shared_intf.Make_algo_intf =
       Printf.eprintf "\t          if first key: link src with origin\n%!";
       Printf.eprintf "\t          else: link src previous Step\n%!";
 
-      let v1 = Graph.V.create @@ Graph.Vlabel.Step "[BK]" in
-      let v2 = Graph.V.create @@ Graph.Vlabel.of_combo_name "Super Punch" in
+      let bk_kset = Graph.KeySet.of_list [
+                        StrKeyMap.find_exn "[BK]" kmap] in
+      let fkleft_kset = Graph.KeySet.of_list [
+                            StrKeyMap.find_exn "[FK]" kmap
+                          ; StrKeyMap.find_exn "Left" kmap] in
 
-      let e1 = Graph.E.create orig (Graph.Elabel.of_key_list [
-                                        StrKeyMap.find_exn "[BK]" kmap
-                                   ]) v1 in
-      let e2 = Graph.E.create v1 (Graph.Elabel.of_key_list [
-                                      StrKeyMap.find_exn "[FK]" kmap
-                                    ; StrKeyMap.find_exn "Left" kmap
-                                 ]) v2 in
+      let v1 = Graph.V.create
+               @@ Graph.Vlabel.create_step [bk_kset]
+      in
+      let v2 = Graph.V.create
+               @@ Graph.Vlabel.create_spell [fkleft_kset; bk_kset] "Super Punch"
+      in
+
+      let e1 = Graph.E.create orig bk_kset v1 in
+      let e2 = Graph.E.create v1 fkleft_kset v2 in
 
       let g = Graph.add_edge_e g e1 in
       let g = Graph.add_edge_e g e2 in
