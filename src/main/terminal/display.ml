@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/13 14:03:15 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 14:35:07 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -26,44 +26,72 @@ module Make : Term_intf.Make_display_intf =
 
     (* Internal *)
 
+    (* TODO: remove wait() function  *)
     let wait milli =
       let sec = milli /. 1000. in
       let tm1 = Unix.gettimeofday () in
       while Unix.gettimeofday () -. tm1 < sec do () done
 
-    type press = Exit | Empty | Set of Graph.KeySet.t
+    module Input =
+      struct
 
-    let keyset_range_millisecf = 150. /. 1000.
-    let keyset_incrange_millisecf = 50. /. 1000.
+        (* Key presses detection with `ncurses` using non-blocking `getch()`:
+         * When next() detects an input it creates a `key set` with this key,
+         *   and opens a `range_millisecf` millisec time frame in which the user
+         *   may press new keys that will be added to the set. Each new key
+         *   added to the set extend the time frame by `incrrange_millisecf`
+         *   milliseconds.
+         *)
 
-    let rec build_keypress_set kset timeout kcode =
-      if Unix.gettimeofday () > timeout then
-        if Graph.KeySet.is_empty kset
-        then Empty
-        else Set kset
-      else if kcode = Curses.Key.backspace then
-        Exit
-      else if kcode = -1 then
-        Curses.getch ()
-        |> build_keypress_set kset timeout
-      else
-        let k = Key.of_curses_code kcode in
-        if Graph.KeySet.mem k kset then
-          Curses.getch ()
-          |> build_keypress_set kset timeout
-        else
-          Curses.getch ()
-          |> build_keypress_set (Graph.KeySet.add k kset)
-                                (timeout +. keyset_incrange_millisecf)
+        type press = Exit | Empty | Set of Graph.KeySet.t
 
-    let next_keypress_set () =
-      match Curses.getch () with
-      | -1 ->
-         Empty
-      | kcode ->
-         build_keypress_set Graph.KeySet.empty
-                            (Unix.gettimeofday () +. keyset_range_millisecf)
-                            kcode
+        let range_millisecf = 150. /. 1000.
+        let incrrange_millisecf = 50. /. 1000.
+
+        let rec build_keyset kset timeout kcode =
+          if Unix.gettimeofday () > timeout then
+            if Graph.KeySet.is_empty kset
+            then Empty
+            else Set kset
+          else if kcode = Curses.Key.backspace then
+            Exit
+          else if kcode = -1 then
+            Curses.getch ()
+            |> build_keyset kset timeout
+          else
+            let k = Key.of_curses_code kcode in
+            if Graph.KeySet.mem k kset then
+              Curses.getch ()
+              |> build_keyset kset timeout
+            else
+              Curses.getch ()
+              |> build_keyset (Graph.KeySet.add k kset)
+                                    (timeout +. incrrange_millisecf)
+
+        let next () =
+          match Curses.getch () with
+          | -1 -> Empty
+          | kcode -> build_keyset
+                       Graph.KeySet.empty
+                       (Unix.gettimeofday () +. range_millisecf)
+                       kcode
+
+        let loop_err (algodat_init, keys) =
+          let rec aux dat =
+            match next () with
+            | Empty ->
+               aux dat
+            | Exit ->
+               Ok ()
+            | Set kset ->
+               match Algo.on_key_press_err kset dat with
+               | Ok dat' -> aux dat'
+               | Error msg -> Error msg
+          in
+          aux algodat_init
+
+
+      end
 
     let init_curses () =
       Printf.eprintf "  Init ncurses\n%!";
@@ -75,25 +103,6 @@ module Make : Term_intf.Make_display_intf =
       match ListLabels.for_all ~f:(fun l -> Lazy.force l) seq with
       | false -> Error "Ncurses init failed"
       | true -> Ok w
-
-    let input_loop_err (algodat_init, keys) =
-      match init_curses () with
-      | Error msg -> Error msg
-      | Ok _ ->
-         let rec aux dat =
-           match next_keypress_set () with
-           | Empty ->
-              aux dat
-           | Exit ->
-              Ok ()
-           | Set kset ->
-              match Algo.on_key_press_err kset dat with
-              | Ok dat' -> aux dat'
-              | Error msg -> Error msg
-         in
-         let res = aux algodat_init in
-         Curses.endwin ();
-         res
 
 
     (* Exposed *)
@@ -125,7 +134,12 @@ module Make : Term_intf.Make_display_intf =
       Printf.eprintf "  if error in Algo.create_err, exit with message\n%!";
       Printf.eprintf "  else continue\n%!";
       match Algo.create_err stdin with
-      | Error msg -> Error msg
-      | Ok dat -> input_loop_err dat
-
+      | Error msg ->
+         Error msg
+      | Ok dat ->
+         match init_curses () with
+         | Error msg -> Error msg
+         | Ok _ ->  let res = Input.loop_err dat in
+                    Curses.endwin ();
+                    res
   end

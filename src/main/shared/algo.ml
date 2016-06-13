@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/13 14:02:33 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 15:21:23 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -19,17 +19,44 @@ module Make : Shared_intf.Make_algo_intf =
            with type vertex = Graph.V.t
            with type edge = Graph.E.t) ->
   struct
+
+    module KeyDicts =
+      struct
+        module StrMap =
+          Ftmap.Make(struct
+                      type t = string
+                      let compare = compare
+                    end)
+        module KeyMap = Ftmap.Make(Key)
+
+        type t = {
+            k_to_a : string KeyMap.t
+          ; a_to_k : Key.t StrMap.t
+          }
+
+        let empty =
+          {k_to_a = KeyMap.empty; a_to_k = StrMap.empty}
+
+        let add {k_to_a; a_to_k} action k =
+          let k_to_a = KeyMap.add k action k_to_a in
+          let a_to_k = StrMap.add action k a_to_k in
+          {k_to_a; a_to_k}
+
+        let key_of_action {a_to_k} action =
+          StrMap.find_opt action a_to_k
+
+        let action_of_key {k_to_a} key =
+          KeyMap.find_opt key k_to_a
+      end
+
     type t = {
         g : Graph.t
       ; state : Graph.V.t
       ; orig : Graph.V.t
+      ; dicts : KeyDicts.t
       }
     type key = Key.t
     type keyset = Graph.KeySet.t
-    module StrKeyMap = Ftmap.Make(struct
-                                   type t = string
-                                   let compare = compare
-                                 end)
 
 
     (* Internal *)
@@ -37,23 +64,23 @@ module Make : Shared_intf.Make_algo_intf =
     let keys_of_channel_err chan =
       Printf.eprintf "\t  read bindings from file\n%!";
       Printf.eprintf "\t    build a (Key.t list) to return to Display\n%!";
-      Printf.eprintf "\t    build a ((string * Key.t) Map) temporary\n%!";
+      Printf.eprintf "\t    build both dictionaries ((string * Key.t) Ftmap.t) ((Key.t * string) Ftmap.t) for future use\n%!";
       Printf.eprintf "\t    foreach shortcuts: call Key.of_string()\n%!";
       let l =  [ ("Left", "left")
                ; ("[BK]", "s")
                ; ("[FK]", "w")]
       in
-      let rec aux klst kmap = function
+      let rec aux klst dicts = function
         | [] ->
-           Ok (klst, kmap)
+           Ok (klst, dicts)
         | (action, key)::tl ->
            match Key.of_string_err key with
            | Error msg -> Error msg
-           | Ok k -> aux (k::klst) (StrKeyMap.add action k kmap) tl
+           | Ok k -> aux (k::klst) (KeyDicts.add dicts action k) tl
       in
-      aux [] StrKeyMap.empty l
+      aux [] KeyDicts.empty l
 
-    let of_channel_and_keys_err chan kmap =
+    let of_channel_and_keys_err chan dicts =
       let g = Graph.empty in
       Printf.eprintf "\t  EXEMPLE WITH: Super Punch:[BK],[FK]+Left\n%!";
       Printf.eprintf "\t  read fsa from file and build graph\n%!";
@@ -71,11 +98,14 @@ module Make : Shared_intf.Make_algo_intf =
       Printf.eprintf "\t          if first key: link src with origin\n%!";
       Printf.eprintf "\t          else: link src previous Step\n%!";
 
-      let bk_kset = Graph.KeySet.of_list [
-                        StrKeyMap.find_exn "[BK]" kmap] in
-      let fkleft_kset = Graph.KeySet.of_list [
-                            StrKeyMap.find_exn "[FK]" kmap
-                          ; StrKeyMap.find_exn "Left" kmap] in
+      let k_of_a str =
+        match KeyDicts.key_of_action dicts str with
+        | None -> assert false
+        | Some v -> v
+      in
+
+      let bk_kset = Graph.KeySet.of_list [k_of_a "[BK]"] in
+      let fkleft_kset = Graph.KeySet.of_list [k_of_a "[FK]"; k_of_a "Left"] in
 
       let v1 = Graph.V.create
                @@ Graph.Vlabel.create_step [bk_kset]
@@ -100,7 +130,7 @@ module Make : Shared_intf.Make_algo_intf =
               Display.declare_edge e
             ) g v
         ) g;
-      Ok {g; state = orig; orig}
+      Ok {g; state = orig; orig; dicts}
 
 
     (* Exposed *)
@@ -135,5 +165,11 @@ module Make : Shared_intf.Make_algo_intf =
          Printf.eprintf "\t  Return inner state saved in type t for later use\n%!";
          Ok {dat with state}
       | Error msg -> Error msg
+
+    let key_of_action {dicts} key =
+      KeyDicts.key_of_action dicts key
+
+    let action_of_key {dicts} action =
+      KeyDicts.action_of_key dicts action
 
   end

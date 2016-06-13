@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/13 14:03:45 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 14:39:18 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -16,6 +16,8 @@
 module type Graph_intf =
   sig
     type key
+
+    (* TODO: move KeySey somewhere else (where?) *)
     module KeySet : Avl.S
            with type elt = key
 
@@ -58,6 +60,8 @@ module type Algo_intf =
 
     val create_err : in_channel -> ((t * key list), string) result
     val on_key_press_err : keyset -> t -> (t, string) result
+    val key_of_action : t -> string -> key option
+    val action_of_key : t -> key -> string option
   end
 
 (* Module Display (Specific to display) *)
