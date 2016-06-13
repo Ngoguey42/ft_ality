@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/13 12:09:45 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 13:27:41 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -121,25 +121,19 @@ module Make : Shared_intf.Make_algo_intf =
 
     let on_key_press_err kset ({g; state; orig} as dat) =
       assert (Graph.mem_vertex g state);
-      Printf.eprintf "\tAlgo.on_key_press()\n%!";
-      (* Printf.eprintf "\t  update inner states and notify Display for vertex focus\n%!"; *)
-      (* Printf.eprintf "\t  Return inner state saved in type t for later use\n%!"; *)
+      Printf.eprintf "\tAlgo.on_key_press(%s)\n%!"
+      @@ Graph.string_of_keyset kset;
+		  Printf.eprintf "\t  update inner states and notify Display for vertex focus\n%!";
 
-      let f elabel =
-        Graph.Elabel.compare kset elabel
-      in
-      (* val binary_find_succ_e : (E.label -> int) -> t -> vertex -> edge option *)
       let state =
-        match Graph.binary_find_succ_e f g state with
-        | None ->
-           Printf.eprintf "Keyset not found in succ\n%!";
-           orig
-        | Some e ->
-           Printf.eprintf "Keyset found in succ\n%!";
-           Graph.E.dst e
+        match Graph.binary_find_succ_e (Graph.Elabel.compare kset) g state with
+        | None -> orig
+        | Some e -> Graph.E.dst e
       in
       match Display.focus_vertex_err state with
-      | Shared_intf.Ok () -> Shared_intf.Ok {dat with state}
+      | Shared_intf.Ok () ->
+         Printf.eprintf "\t  Return inner state saved in type t for later use\n%!";
+         Shared_intf.Ok {dat with state}
       | Shared_intf.Error msg -> Shared_intf.Error msg
 
   end

@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 14:59:46 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/13 12:14:57 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 13:23:15 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -40,12 +40,12 @@ module type S =
     (* val union : t -> t -> t *)
     (* val inter : t -> t -> t (Set only) *)
     (* val diff : t -> t -> t (Set only) *)
-    (* val compare : t -> t -> int *)
+    val compare : t -> t -> int
     (* val equal : t -> t -> bool *)
     (* val subset : t -> t -> bool (Set only) *)
     val iter : (elt -> unit) -> t -> unit
     val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
-    (* val for_all: (elt -> bool) -> t -> bool *)
+    val for_all: (elt -> bool) -> t -> bool
     (* val exists: (elt -> bool) -> t -> bool *)
     val filter: (elt -> bool) -> t -> t
     (* val partition: (elt -> bool) -> t -> t * t *)
@@ -53,7 +53,7 @@ module type S =
     (* bindings (Map only) *)
     (* max_binding (Map only) *)
     (* min_binding (Map only) *)
-    (* val elements : t -> elt list (Set only) *)
+    val elements : t -> elt list
     (* val min_elt : t -> elt (Set only) *)
     (* val max_elt : t -> elt (Set only) *)
     (* val choose : t -> elt *)
@@ -201,18 +201,28 @@ module Make : Make_intf =
       in
       aux t
 
+    let for_all f t =
+      let rec aux = function
+        | Empty -> true
+        | Node(lhs, v, rhs) ->
+           if not (aux lhs)
+           then false
+           else if not (f v)
+           then false
+           else aux rhs
+      in
+      aux t
+
     let binary_find f t =
       let rec aux = function
 	      | Node (lhs, v, rhs) ->
            let direction = f v in
-           Printf.eprintf "$$$Node! dir=%d\n%!" direction;
            if direction = 0
            then Some v
            else if direction < 0
            then aux lhs
            else aux rhs
 	      | Empty ->
-           Printf.eprintf "$$$$Empty\n%!";
            None
       in
       aux t
@@ -243,4 +253,28 @@ module Make : Make_intf =
     let of_list l =
       List.fold_left (fun acc e ->
           add e acc) empty l
+
+    (* Quick and DIRTY implementation *)
+    let elements t =
+      fold (fun v acc -> v::acc) t []
+      |> List.rev
+
+    (* Quick and DIRTY implementation *)
+    let compare a b =
+      match cardinal a - cardinal b with
+      | 0 ->
+         let rec diff2 la lb =
+           match la, lb with
+           | hda::tla, hdb::tlb ->
+              begin match Ord.compare hda hdb with
+              | 0 -> diff2 tla tlb
+              | diff -> diff
+              end
+           | _, _ ->
+              0
+         in
+         diff2 (elements a) (elements b)
+      | diff ->
+         diff
+
   end

@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/13 12:06:54 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 13:25:16 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -85,10 +85,8 @@ module Make : Term_intf.Make_display_intf =
            | Empty ->
               aux dat
            | Exit ->
-              Printf.eprintf "Exit\n%!";
               Shared_intf.Ok ()
            | Set kset ->
-              Printf.eprintf "Set %s\n%!" (Graph.string_of_keyset kset);
               match Algo.on_key_press_err kset dat with
               | Shared_intf.Ok dat' -> aux dat'
               | Shared_intf.Error msg -> Shared_intf.Error msg
