@@ -6,14 +6,9 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/13 11:58:58 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 14:03:45 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
-
-(* TODO: move result to Fterror.ml file OR switch to ocaml 4.03.0 *)
-type ('a, 'b) result =
-  | Ok of 'a
-  | Error of 'b
 
 (* Modules are instanciated in main.ml *)
 

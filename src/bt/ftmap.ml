@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/08 11:58:46 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/10 08:05:14 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 13:32:44 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -18,7 +18,7 @@ module type OrderedType =
 
 module type S =
   sig
-    (* Interfaces from std Map, same ordering, same prototypes *)
+    (* Interface from std Map, same ordering, same prototypes *)
 
     type key
     type +'a t

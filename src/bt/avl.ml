@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 14:59:46 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/13 13:23:15 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 13:32:34 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -23,10 +23,7 @@ module type OrderedType =
 
 module type S =
   sig
-    (* Merged interfaces from std Map and Set.
-     * Same ordering
-     * Same prototypes
-     *)
+    (* Interface from std and Set, same ordering, same prototypes *)
 
     type elt
     type t
@@ -36,13 +33,12 @@ module type S =
     val add : elt -> t -> t
     (* val singleton : elt -> t *)
     val remove : elt -> t -> t
-    (* merge (Map only) *)
     (* val union : t -> t -> t *)
-    (* val inter : t -> t -> t (Set only) *)
-    (* val diff : t -> t -> t (Set only) *)
+    (* val inter : t -> t -> t *)
+    (* val diff : t -> t -> t *)
     val compare : t -> t -> int
     (* val equal : t -> t -> bool *)
-    (* val subset : t -> t -> bool (Set only) *)
+    (* val subset : t -> t -> bool *)
     val iter : (elt -> unit) -> t -> unit
     val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
     val for_all: (elt -> bool) -> t -> bool
@@ -50,17 +46,13 @@ module type S =
     val filter: (elt -> bool) -> t -> t
     (* val partition: (elt -> bool) -> t -> t * t *)
     val cardinal : t -> int
-    (* bindings (Map only) *)
-    (* max_binding (Map only) *)
-    (* min_binding (Map only) *)
     val elements : t -> elt list
-    (* val min_elt : t -> elt (Set only) *)
-    (* val max_elt : t -> elt (Set only) *)
+    (* val min_elt : t -> elt *)
+    (* val max_elt : t -> elt *)
     (* val choose : t -> elt *)
     (* val split : elt -> t -> t * bool * t *)
     (* val find : elt -> t -> elt *)
     val of_list : elt list -> t
-    (* map, mapi (Map only) *)
 
 
     (* Not present in std *)

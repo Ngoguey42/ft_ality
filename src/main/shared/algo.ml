@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/13 13:27:41 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 14:02:33 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -45,11 +45,11 @@ module Make : Shared_intf.Make_algo_intf =
       in
       let rec aux klst kmap = function
         | [] ->
-           Shared_intf.Ok (klst, kmap)
-        | ((action, key) as hd)::tl ->
+           Ok (klst, kmap)
+        | (action, key)::tl ->
            match Key.of_string_err key with
-           | Shared_intf.Error msg -> Shared_intf.Error msg
-           | Shared_intf.Ok k -> aux (k::klst) (StrKeyMap.add action k kmap) tl
+           | Error msg -> Error msg
+           | Ok k -> aux (k::klst) (StrKeyMap.add action k kmap) tl
       in
       aux [] StrKeyMap.empty l
 
@@ -100,7 +100,7 @@ module Make : Shared_intf.Make_algo_intf =
               Display.declare_edge e
             ) g v
         ) g;
-      Shared_intf.Ok {g; state = orig; orig}
+      Ok {g; state = orig; orig}
 
 
     (* Exposed *)
@@ -109,15 +109,15 @@ module Make : Shared_intf.Make_algo_intf =
       Printf.eprintf "\tAlgo.create()\n%!";
       Printf.eprintf "\t  Read channel and init self data\n%!";
       match keys_of_channel_err chan with
-      | Shared_intf.Error msg ->
-         Shared_intf.Error msg
-      | Shared_intf.Ok (klst, kmap) ->
+      | Error msg ->
+         Error msg
+      | Ok (klst, kmap) ->
          match of_channel_and_keys_err chan kmap with
-         | Shared_intf.Error msg ->
-            Shared_intf.Error msg
-         | Shared_intf.Ok dat ->
+         | Error msg ->
+            Error msg
+         | Ok dat ->
             Printf.eprintf "\t  Return inner state saved in type t for later use\n%!";
-            Shared_intf.Ok (dat, klst)
+            Ok (dat, klst)
 
     let on_key_press_err kset ({g; state; orig} as dat) =
       assert (Graph.mem_vertex g state);
@@ -131,9 +131,9 @@ module Make : Shared_intf.Make_algo_intf =
         | Some e -> Graph.E.dst e
       in
       match Display.focus_vertex_err state with
-      | Shared_intf.Ok () ->
+      | Ok () ->
          Printf.eprintf "\t  Return inner state saved in type t for later use\n%!";
-         Shared_intf.Ok {dat with state}
-      | Shared_intf.Error msg -> Shared_intf.Error msg
+         Ok {dat with state}
+      | Error msg -> Error msg
 
   end

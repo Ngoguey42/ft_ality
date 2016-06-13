@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/10 11:51:10 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/13 12:00:25 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 14:03:24 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -23,6 +23,6 @@ module rec D : (Shared_intf.Display_intf
 
 let () =
   match D.run_err () with
-  | Shared_intf.Error msg ->
+  | Error msg ->
      Printf.eprintf "%s Error: \"%s\"\n%!" Sys.argv.(0) msg
   | _ -> ()

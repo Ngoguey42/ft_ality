@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/13 13:25:16 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 14:03:15 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -73,23 +73,23 @@ module Make : Term_intf.Make_display_intf =
                 ; lazy (Curses.noecho ())]
       in
       match ListLabels.for_all ~f:(fun l -> Lazy.force l) seq with
-      | false -> Shared_intf.Error "Ncurses init failed"
-      | true -> Shared_intf.Ok w
+      | false -> Error "Ncurses init failed"
+      | true -> Ok w
 
     let input_loop_err (algodat_init, keys) =
       match init_curses () with
-      | Shared_intf.Error msg -> Shared_intf.Error msg
-      | Shared_intf.Ok _ ->
+      | Error msg -> Error msg
+      | Ok _ ->
          let rec aux dat =
            match next_keypress_set () with
            | Empty ->
               aux dat
            | Exit ->
-              Shared_intf.Ok ()
+              Ok ()
            | Set kset ->
               match Algo.on_key_press_err kset dat with
-              | Shared_intf.Ok dat' -> aux dat'
-              | Shared_intf.Error msg -> Shared_intf.Error msg
+              | Ok dat' -> aux dat'
+              | Error msg -> Error msg
          in
          let res = aux algodat_init in
          Curses.endwin ();
@@ -114,8 +114,7 @@ module Make : Term_intf.Make_display_intf =
       Graph.V.label v
       |> Graph.Vlabel.to_string
       |> Printf.eprintf "\t\tDisplay.focus_vertex_err(%s)\n%!";
-      Printf.eprintf "\t\t  Print current state info to terminal\n%!";
-      Shared_intf.Ok ()
+      Ok ()
 
     let run_err () =
       Printf.eprintf "Display.run_err()\n%!";
@@ -126,7 +125,7 @@ module Make : Term_intf.Make_display_intf =
       Printf.eprintf "  if error in Algo.create_err, exit with message\n%!";
       Printf.eprintf "  else continue\n%!";
       match Algo.create_err stdin with
-      | Shared_intf.Error msg -> Shared_intf.Error msg
-      | Shared_intf.Ok dat -> input_loop_err dat
+      | Error msg -> Error msg
+      | Ok dat -> input_loop_err dat
 
   end

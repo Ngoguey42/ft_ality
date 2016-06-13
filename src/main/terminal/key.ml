@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 16:34:22 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/13 11:42:22 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 14:03:02 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -18,10 +18,10 @@ type t = {
 (* Internal *)
 
 let ok p =
-  Shared_intf.Ok p
+  Ok p
 
 let error p =
-  Shared_intf.Error p
+  Error p
 
 let code_of_string_err = function
   | "left" -> ok Curses.Key.left
@@ -39,8 +39,8 @@ let default = {code = -1}
 let of_string_err key =
   Printf.eprintf "\t\tKey.of_string((\"%s\"))\n%!" key;
   match code_of_string_err key with
-  | Shared_intf.Ok code -> ok {code}
-  | Shared_intf.Error msg -> error msg
+  | Ok code -> ok {code}
+  | Error msg -> error msg
 
 let to_string {code} =
   string_of_int code
