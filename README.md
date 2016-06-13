@@ -28,8 +28,9 @@
 
 # How to:
 
-#### `at school` from `docker quickstart terminal` run docker with shared volume
+#### `at school` run docker-machine, docker with shared volume
 ```sh
+zsh --login "/Applications/Docker/Docker Quickstart Terminal.app/Contents/Resources/Scripts/start.sh"
 cd /Users/Shared
 git clone --recursive https://github.com/Ngoguey42/tmp_ftality
 cd tmp_ftality
