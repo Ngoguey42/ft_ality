@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/13 09:11:02 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 12:09:45 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -21,8 +21,11 @@ module Make : Shared_intf.Make_algo_intf =
   struct
     type t = {
         g : Graph.t
+      ; state : Graph.V.t
+      ; orig : Graph.V.t
       }
     type key = Key.t
+    type keyset = Graph.KeySet.t
     module StrKeyMap = Ftmap.Make(struct
                                    type t = string
                                    let compare = compare
@@ -50,7 +53,7 @@ module Make : Shared_intf.Make_algo_intf =
       in
       aux [] StrKeyMap.empty l
 
-    let graph_of_channel_and_keys_err chan kmap =
+    let of_channel_and_keys_err chan kmap =
       let g = Graph.empty in
       Printf.eprintf "\t  EXEMPLE WITH: Super Punch:[BK],[FK]+Left\n%!";
       Printf.eprintf "\t  read fsa from file and build graph\n%!";
@@ -97,7 +100,7 @@ module Make : Shared_intf.Make_algo_intf =
               Display.declare_edge e
             ) g v
         ) g;
-      Shared_intf.Ok g
+      Shared_intf.Ok {g; state = orig; orig}
 
 
     (* Exposed *)
@@ -109,18 +112,34 @@ module Make : Shared_intf.Make_algo_intf =
       | Shared_intf.Error msg ->
          Shared_intf.Error msg
       | Shared_intf.Ok (klst, kmap) ->
-         match graph_of_channel_and_keys_err chan kmap with
+         match of_channel_and_keys_err chan kmap with
          | Shared_intf.Error msg ->
             Shared_intf.Error msg
-         | Shared_intf.Ok g ->
+         | Shared_intf.Ok dat ->
             Printf.eprintf "\t  Return inner state saved in type t for later use\n%!";
-            Shared_intf.Ok ({g}, klst)
+            Shared_intf.Ok (dat, klst)
 
-    let on_key_press_err k env =
+    let on_key_press_err kset ({g; state; orig} as dat) =
+      assert (Graph.mem_vertex g state);
       Printf.eprintf "\tAlgo.on_key_press()\n%!";
-      Printf.eprintf "\t  update inner states and notify Display for vertex focus\n%!";
-      (* Display.focus_vertex {Vertex.id = 42}; *)
-      Printf.eprintf "\t  Return inner state saved in type t for later use\n%!";
-      Shared_intf.Ok env
+      (* Printf.eprintf "\t  update inner states and notify Display for vertex focus\n%!"; *)
+      (* Printf.eprintf "\t  Return inner state saved in type t for later use\n%!"; *)
+
+      let f elabel =
+        Graph.Elabel.compare kset elabel
+      in
+      (* val binary_find_succ_e : (E.label -> int) -> t -> vertex -> edge option *)
+      let state =
+        match Graph.binary_find_succ_e f g state with
+        | None ->
+           Printf.eprintf "Keyset not found in succ\n%!";
+           orig
+        | Some e ->
+           Printf.eprintf "Keyset found in succ\n%!";
+           Graph.E.dst e
+      in
+      match Display.focus_vertex_err state with
+      | Shared_intf.Ok () -> Shared_intf.Ok {dat with state}
+      | Shared_intf.Error msg -> Shared_intf.Error msg
 
   end

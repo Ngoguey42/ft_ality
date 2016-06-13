@@ -6,10 +6,11 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/13 09:13:14 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 11:58:58 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
+(* TODO: move result to Fterror.ml file OR switch to ocaml 4.03.0 *)
 type ('a, 'b) result =
   | Ok of 'a
   | Error of 'b
@@ -58,9 +59,10 @@ module type Algo_intf =
   sig
     type t
     type key
+    type keyset
 
     val create_err : in_channel -> ((t * key list), string) result
-    val on_key_press_err : key -> t -> (t, string) result
+    val on_key_press_err : keyset -> t -> (t, string) result
   end
 
 (* Module Display (Specific to display) *)
@@ -70,10 +72,9 @@ module type Display_intf =
     type vertex
     type edge
 
-    (* val declare_key : key -> unit *)
     val declare_vertex : vertex -> unit
     val declare_edge : edge -> unit
-    val focus_vertex : vertex -> unit
+    val focus_vertex_err : vertex -> (unit, string) result
     val run_err : unit -> (unit, string) result
   end
 
@@ -99,6 +100,7 @@ module type Make_algo_intf =
            with type edge = Graph.E.t) ->
   Algo_intf
   with type key = Key.t
+  with type keyset = Graph.KeySet.t
 
 module type Make_graph_intf =
   functor (Key : Key_intf) ->

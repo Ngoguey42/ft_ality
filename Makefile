@@ -103,7 +103,7 @@ else ifeq ($(BUILD_MODE),termnat)
   CC_OCAMLC		= ocamlfind ocamlc
   CC_OCAMLOPT	= ocamlfind ocamlopt
   LD_FLAGS		= -linkpkg
-  BASE_FLAGS	+= -package curses
+  BASE_FLAGS	+= -package curses,unix
 
   SRCSBIN		= $(MKGEN_SRCSBIN_TERMNAT) #gen by mkgen
   INCLUDEDIRS	= $(addprefix $(OBJDIR)/,$(SRCDIRS_TERMNAT))

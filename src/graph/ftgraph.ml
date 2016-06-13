@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/08 11:23:29 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/10 14:50:21 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 12:12:52 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -109,13 +109,13 @@ Ftgraph_intf.Make_PersistentDigraphAbstractLabeled_intf =
       | Some eset -> EdgeSet.fold f eset acc
 
     let binary_find_succ_e f {vertices} v =
-      VertexMap.find_opt v vertices
-      |> (function
-          | None ->
-             None
-          | Some eset ->
-             EdgeSet.binary_find (fun e -> f (E.label e)) eset
-         )
+      match VertexMap.find_opt v vertices with
+      | None ->
+         Printf.eprintf "$$Vertex not found!!\n%!";
+         None
+      | Some eset ->
+         Printf.eprintf "$$Vertex found\n%!";
+         EdgeSet.binary_find (fun e -> f (E.label e)) eset
 
     let invariants g =
       (*

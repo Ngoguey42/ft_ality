@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/10 12:46:24 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/11 18:18:38 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 12:17:21 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -55,6 +55,7 @@ module Make : Shared_intf.Make_graph_intf =
 
         let compare a b =
           0
+          (* KeySet.compare a b *)
 
         let default = KeySet.empty
 

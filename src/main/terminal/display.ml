@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/13 09:13:44 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 12:06:54 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -15,7 +15,8 @@ module Make : Term_intf.Make_display_intf =
   functor (Graph : Shared_intf.Graph_intf
            with type key = Key.t) ->
   functor (Algo : Shared_intf.Algo_intf
-           with type key = Key.t) ->
+           with type key = Key.t
+           with type keyset = Graph.KeySet.t) ->
   struct
 
     type key = Key.t
@@ -25,28 +26,76 @@ module Make : Term_intf.Make_display_intf =
 
     (* Internal *)
 
-    let input_loop_err (algodat_init, keys) =
+    let wait milli =
+      let sec = milli /. 1000. in
+      let tm1 = Unix.gettimeofday () in
+      while Unix.gettimeofday () -. tm1 < sec do () done
+
+    type press = Exit | Empty | Set of Graph.KeySet.t
+
+    let keyset_range_millisecf = 150. /. 1000.
+    let keyset_incrange_millisecf = 50. /. 1000.
+
+    let rec build_keypress_set kset timeout kcode =
+      if Unix.gettimeofday () > timeout then
+        if Graph.KeySet.is_empty kset
+        then Empty
+        else Set kset
+      else if kcode = Curses.Key.backspace then
+        Exit
+      else if kcode = -1 then
+        Curses.getch ()
+        |> build_keypress_set kset timeout
+      else
+        let k = Key.of_curses_code kcode in
+        if Graph.KeySet.mem k kset then
+          Curses.getch ()
+          |> build_keypress_set kset timeout
+        else
+          Curses.getch ()
+          |> build_keypress_set (Graph.KeySet.add k kset)
+                                (timeout +. keyset_incrange_millisecf)
+
+    let next_keypress_set () =
+      match Curses.getch () with
+      | -1 ->
+         Empty
+      | kcode ->
+         build_keypress_set Graph.KeySet.empty
+                            (Unix.gettimeofday () +. keyset_range_millisecf)
+                            kcode
+
+    let init_curses () =
       Printf.eprintf "  Init ncurses\n%!";
       let w = Curses.initscr () in
-      let _ = Curses.keypad w true in
-
-      let rec aux dat =
-        Printf.eprintf "  waiting for key_press(exit with backspace)\n%!";
-        match Curses.getch () with
-        | kcode when kcode = Curses.Key.backspace ->
-           Shared_intf.Ok ()
-        | kcode ->
-           let k = Key.of_curses_code kcode in
-           Printf.eprintf "**key press**\n%!";
-           Printf.eprintf "Convert code to Key.t\n%!";
-           Printf.eprintf "  pass Key.t and Algo.t to Algo.on_key_press()\n%!";
-           match Algo.on_key_press_err k dat with
-           | Shared_intf.Error msg -> Shared_intf.Error msg
-           | Shared_intf.Ok dat' -> aux dat'
+      let seq = [ lazy (Curses.keypad w true)
+                ; lazy (Curses.nodelay w true)
+                ; lazy (Curses.noecho ())]
       in
-      let res = aux algodat_init in
-      Curses.endwin ();
-      res
+      match ListLabels.for_all ~f:(fun l -> Lazy.force l) seq with
+      | false -> Shared_intf.Error "Ncurses init failed"
+      | true -> Shared_intf.Ok w
+
+    let input_loop_err (algodat_init, keys) =
+      match init_curses () with
+      | Shared_intf.Error msg -> Shared_intf.Error msg
+      | Shared_intf.Ok _ ->
+         let rec aux dat =
+           match next_keypress_set () with
+           | Empty ->
+              aux dat
+           | Exit ->
+              Printf.eprintf "Exit\n%!";
+              Shared_intf.Ok ()
+           | Set kset ->
+              Printf.eprintf "Set %s\n%!" (Graph.string_of_keyset kset);
+              match Algo.on_key_press_err kset dat with
+              | Shared_intf.Ok dat' -> aux dat'
+              | Shared_intf.Error msg -> Shared_intf.Error msg
+         in
+         let res = aux algodat_init in
+         Curses.endwin ();
+         res
 
 
     (* Exposed *)
@@ -63,13 +112,15 @@ module Make : Term_intf.Make_display_intf =
                      (Graph.E.dst e |> Graph.V.label |> Graph.Vlabel.to_string);
       ()
 
-    let focus_vertex _ =
-      Printf.eprintf "\t\tDisplay.focus_vertex()\n%!";
+    let focus_vertex_err v =
+      Graph.V.label v
+      |> Graph.Vlabel.to_string
+      |> Printf.eprintf "\t\tDisplay.focus_vertex_err(%s)\n%!";
       Printf.eprintf "\t\t  Print current state info to terminal\n%!";
-      ()
+      Shared_intf.Ok ()
 
     let run_err () =
-      Printf.eprintf "Display.run()\n%!";
+      Printf.eprintf "Display.run_err()\n%!";
       Printf.eprintf "  if stdin open, pass stdin\n%!";
       Printf.eprintf "  elseif argv[1] can be open, pass file\n%!";
       Printf.eprintf "  else, error print usage\n%!";

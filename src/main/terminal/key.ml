@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 16:34:22 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/13 09:02:15 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 11:42:22 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -31,6 +31,7 @@ let code_of_string_err = function
   | s when String.length s = 1 -> String.get s 0 |> int_of_char |> ok
   | s -> Printf.sprintf "Unknown key \"%s\"" s |> error
 
+
 (* Exposed *)
 
 let default = {code = -1}
@@ -48,5 +49,7 @@ let compare a b =
   a.code - b.code
 
 let of_curses_code kcode =
-  Printf.eprintf "\tKey.of_curses_code(%d)\n%!" kcode;
   {code = kcode}
+
+let get_curses_code {code} =
+  code

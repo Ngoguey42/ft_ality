@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 14:59:46 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/10 15:33:03 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 12:14:57 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -203,14 +203,16 @@ module Make : Make_intf =
 
     let binary_find f t =
       let rec aux = function
-	      | Node(lhs, v, rhs) ->
+	      | Node (lhs, v, rhs) ->
            let direction = f v in
+           Printf.eprintf "$$$Node! dir=%d\n%!" direction;
            if direction = 0
            then Some v
            else if direction < 0
            then aux lhs
            else aux rhs
 	      | Empty ->
+           Printf.eprintf "$$$$Empty\n%!";
            None
       in
       aux t
