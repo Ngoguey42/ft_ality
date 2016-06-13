@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/11 18:14:11 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 09:11:02 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -28,7 +28,10 @@ module Make : Shared_intf.Make_algo_intf =
                                    let compare = compare
                                  end)
 
-    let keys_of_channel chan =
+
+    (* Internal *)
+
+    let keys_of_channel_err chan =
       Printf.eprintf "\t  read bindings from file\n%!";
       Printf.eprintf "\t    build a (Key.t list) to return to Display\n%!";
       Printf.eprintf "\t    build a ((string * Key.t) Map) temporary\n%!";
@@ -37,14 +40,17 @@ module Make : Shared_intf.Make_algo_intf =
                ; ("[BK]", "s")
                ; ("[FK]", "w")]
       in
-      (* val fold_left : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a *)
-      List.fold_left (fun (lst, map) ((action, key) as dat) ->
-          let k = Key.of_strings dat in
-          k::lst, StrKeyMap.add action k map
-        ) ([], StrKeyMap.empty) l
+      let rec aux klst kmap = function
+        | [] ->
+           Shared_intf.Ok (klst, kmap)
+        | ((action, key) as hd)::tl ->
+           match Key.of_string_err key with
+           | Shared_intf.Error msg -> Shared_intf.Error msg
+           | Shared_intf.Ok k -> aux (k::klst) (StrKeyMap.add action k kmap) tl
+      in
+      aux [] StrKeyMap.empty l
 
-
-    let graph_of_channel_and_keys chan kmap =
+    let graph_of_channel_and_keys_err chan kmap =
       let g = Graph.empty in
       Printf.eprintf "\t  EXEMPLE WITH: Super Punch:[BK],[FK]+Left\n%!";
       Printf.eprintf "\t  read fsa from file and build graph\n%!";
@@ -91,21 +97,30 @@ module Make : Shared_intf.Make_algo_intf =
               Display.declare_edge e
             ) g v
         ) g;
-      g
+      Shared_intf.Ok g
 
-    let create chan =
+
+    (* Exposed *)
+
+    let create_err chan =
       Printf.eprintf "\tAlgo.create()\n%!";
       Printf.eprintf "\t  Read channel and init self data\n%!";
-      let klst, kmap = keys_of_channel chan in
-      let g = graph_of_channel_and_keys chan kmap in
-      Printf.eprintf "\t  Return inner state saved in type t for later use\n%!";
-      {g}, []
+      match keys_of_channel_err chan with
+      | Shared_intf.Error msg ->
+         Shared_intf.Error msg
+      | Shared_intf.Ok (klst, kmap) ->
+         match graph_of_channel_and_keys_err chan kmap with
+         | Shared_intf.Error msg ->
+            Shared_intf.Error msg
+         | Shared_intf.Ok g ->
+            Printf.eprintf "\t  Return inner state saved in type t for later use\n%!";
+            Shared_intf.Ok ({g}, klst)
 
-    let on_key_press k env =
+    let on_key_press_err k env =
       Printf.eprintf "\tAlgo.on_key_press()\n%!";
       Printf.eprintf "\t  update inner states and notify Display for vertex focus\n%!";
       (* Display.focus_vertex {Vertex.id = 42}; *)
       Printf.eprintf "\t  Return inner state saved in type t for later use\n%!";
-      env
+      Shared_intf.Ok env
 
   end

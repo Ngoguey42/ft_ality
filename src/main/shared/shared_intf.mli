@@ -6,9 +6,13 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/11 17:20:26 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 09:13:14 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
+
+type ('a, 'b) result =
+  | Ok of 'a
+  | Error of 'b
 
 (* Modules are instanciated in main.ml *)
 
@@ -55,8 +59,8 @@ module type Algo_intf =
     type t
     type key
 
-    val create : in_channel -> t * key list
-    val on_key_press : key -> t -> t
+    val create_err : in_channel -> ((t * key list), string) result
+    val on_key_press_err : key -> t -> (t, string) result
   end
 
 (* Module Display (Specific to display) *)
@@ -66,11 +70,11 @@ module type Display_intf =
     type vertex
     type edge
 
-    val declare_key : key -> unit
+    (* val declare_key : key -> unit *)
     val declare_vertex : vertex -> unit
     val declare_edge : edge -> unit
     val focus_vertex : vertex -> unit
-    val run : unit -> unit
+    val run_err : unit -> (unit, string) result
   end
 
 (* Module Key (Specific to display) *)
@@ -79,7 +83,7 @@ module type Key_intf =
     type t
 
     val default : t
-    val of_strings : string * string -> t
+    val of_string_err : string -> (t, string) result
     val to_string : t -> string
     val compare : t -> t -> int
 

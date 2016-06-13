@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/11 18:07:54 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 09:13:44 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -22,10 +22,34 @@ module Make : Term_intf.Make_display_intf =
     type vertex = Graph.V.t
     type edge = Graph.E.t
 
-    let declare_key _ =
-      Printf.eprintf "\t\tDisplay.declare_key()\n%!";
-      Printf.eprintf "\t\t  Print key info to terminal\n%!";
-      ()
+
+    (* Internal *)
+
+    let input_loop_err (algodat_init, keys) =
+      Printf.eprintf "  Init ncurses\n%!";
+      let w = Curses.initscr () in
+      let _ = Curses.keypad w true in
+
+      let rec aux dat =
+        Printf.eprintf "  waiting for key_press(exit with backspace)\n%!";
+        match Curses.getch () with
+        | kcode when kcode = Curses.Key.backspace ->
+           Shared_intf.Ok ()
+        | kcode ->
+           let k = Key.of_curses_code kcode in
+           Printf.eprintf "**key press**\n%!";
+           Printf.eprintf "Convert code to Key.t\n%!";
+           Printf.eprintf "  pass Key.t and Algo.t to Algo.on_key_press()\n%!";
+           match Algo.on_key_press_err k dat with
+           | Shared_intf.Error msg -> Shared_intf.Error msg
+           | Shared_intf.Ok dat' -> aux dat'
+      in
+      let res = aux algodat_init in
+      Curses.endwin ();
+      res
+
+
+    (* Exposed *)
 
     let declare_vertex v =
       Printf.eprintf "\t\tDisplay.declare_vertex(%s)\n%!"
@@ -44,23 +68,16 @@ module Make : Term_intf.Make_display_intf =
       Printf.eprintf "\t\t  Print current state info to terminal\n%!";
       ()
 
-    let run () =
+    let run_err () =
       Printf.eprintf "Display.run()\n%!";
       Printf.eprintf "  if stdin open, pass stdin\n%!";
       Printf.eprintf "  elseif argv[1] can be open, pass file\n%!";
       Printf.eprintf "  else, error print usage\n%!";
 
-      let dat, keys = Algo.create stdin in
-      Printf.eprintf "  wait for key_press\n%!";
-
-      Printf.eprintf "**key press**\n%!";
-      Printf.eprintf "  Convert 1 (or more) byte(s) read to a Key.t\n%!";
-      let k = Key.of_bytes "" in
-      Printf.eprintf "  pass Key.t and Algo.t to Algo.on_key_press()\n%!";
-
-      let dat = Algo.on_key_press k dat in
-      Printf.eprintf "**key press**\n%!";
-      Printf.eprintf "repeat...\n%!";
-      ()
+      Printf.eprintf "  if error in Algo.create_err, exit with message\n%!";
+      Printf.eprintf "  else continue\n%!";
+      match Algo.create_err stdin with
+      | Shared_intf.Error msg -> Shared_intf.Error msg
+      | Shared_intf.Ok dat -> input_loop_err dat
 
   end

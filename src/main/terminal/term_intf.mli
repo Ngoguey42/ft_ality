@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/10 08:39:51 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/11 18:08:01 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 07:20:09 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -14,7 +14,7 @@ module type Key_intf =
   sig
     include Shared_intf.Key_intf
 
-    val of_bytes : bytes -> t
+    val of_curses_code : int -> t
   end
 
 module type Make_display_intf =

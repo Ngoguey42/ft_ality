@@ -90,6 +90,9 @@ BUILD_MODE ?= termbyte
 ifeq ($(BUILD_MODE),termbyte)
   NAME			:= ft_ality
   CC_LD			= $(CC_OCAMLC)
+  CC_OCAMLC		= ocamlfind ocamlc
+  LD_FLAGS		= -linkpkg
+  BASE_FLAGS	+= -package curses
 
   SRCSBIN		= $(MKGEN_SRCSBIN_TERMBYTE) #gen by mkgen
   INCLUDEDIRS	= $(addprefix $(OBJDIR)/,$(SRCDIRS_TERMBYTE))
@@ -97,6 +100,10 @@ ifeq ($(BUILD_MODE),termbyte)
 else ifeq ($(BUILD_MODE),termnat)
   NAME			:= ft_ality
   CC_LD			= $(CC_OCAMLOPT)
+  CC_OCAMLC		= ocamlfind ocamlc
+  CC_OCAMLOPT	= ocamlfind ocamlopt
+  LD_FLAGS		= -linkpkg
+  BASE_FLAGS	+= -package curses
 
   SRCSBIN		= $(MKGEN_SRCSBIN_TERMNAT) #gen by mkgen
   INCLUDEDIRS	= $(addprefix $(OBJDIR)/,$(SRCDIRS_TERMNAT))

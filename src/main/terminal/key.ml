@@ -6,30 +6,47 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 16:34:22 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/10 15:29:24 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/13 09:02:15 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
 type t = {
-    id : int
-  ; action : string
+    code : int
   }
 
-let default = {id = 0; action = ""}
 
-let of_strings (action, key) =
-  Printf.eprintf "\t\tKey.of_string((\"%s\", \"%s\"))\n%!" action key;
-  {id = 42; action}
+(* Internal *)
 
-let to_string {action; id} =
-  Printf.sprintf "%s:%d" action id
+let ok p =
+  Shared_intf.Ok p
+
+let error p =
+  Shared_intf.Error p
+
+let code_of_string_err = function
+  | "left" -> ok Curses.Key.left
+  | "right" -> ok Curses.Key.right
+  | "down" -> ok Curses.Key.down
+  | "up" -> ok Curses.Key.up
+  | s when String.length s = 1 -> String.get s 0 |> int_of_char |> ok
+  | s -> Printf.sprintf "Unknown key \"%s\"" s |> error
+
+(* Exposed *)
+
+let default = {code = -1}
+
+let of_string_err key =
+  Printf.eprintf "\t\tKey.of_string((\"%s\"))\n%!" key;
+  match code_of_string_err key with
+  | Shared_intf.Ok code -> ok {code}
+  | Shared_intf.Error msg -> error msg
+
+let to_string {code} =
+  string_of_int code
 
 let compare a b =
-  compare a.action b.action
-  (* a.id - b.id *)
+  a.code - b.code
 
-(* TODO: use ncurse or sdl instead? *)
-(* Bytes read in terminal are converted to t *)
-let of_bytes _ =
-  Printf.eprintf "\tKey.of_bytes()\n%!";
-  {id = 42; action = ""}
+let of_curses_code kcode =
+  Printf.eprintf "\tKey.of_curses_code(%d)\n%!" kcode;
+  {code = kcode}
