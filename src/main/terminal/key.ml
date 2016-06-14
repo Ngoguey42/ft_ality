@@ -6,50 +6,53 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 16:34:22 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/13 14:03:02 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/14 16:05:59 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
-type t = {
-    code : int
-  }
-
+type t = Escape of char list | Char of char
 
 (* Internal *)
 
-let ok p =
-  Ok p
-
-let error p =
-  Error p
-
 let code_of_string_err = function
-  | "left" -> ok Curses.Key.left
-  | "right" -> ok Curses.Key.right
-  | "down" -> ok Curses.Key.down
-  | "up" -> ok Curses.Key.up
-  | s when String.length s = 1 -> String.get s 0 |> int_of_char |> ok
-  | s -> Printf.sprintf "Unknown key \"%s\"" s |> error
+  | "left" -> Ok (Escape ['['; 'D'])
+  | "right" -> Ok (Escape ['['; 'C'])
+  | "down" -> Ok (Escape ['['; 'B'])
+  | "up" -> Ok (Escape ['['; 'A'])
+  | s when String.length s = 1 -> Ok (Char (String.get s 0))
+  | s -> Error (Printf.sprintf "Unknown key \"%s\"" s)
+
+let string_of_char c =
+  Printf.sprintf "'%s'" (Char.escaped c)
 
 
 (* Exposed *)
 
-let default = {code = -1}
+let default = Char 'c'
 
-let of_string_err key =
-  Printf.eprintf "\t\tKey.of_string((\"%s\"))\n%!" key;
-  match code_of_string_err key with
-  | Ok code -> ok {code}
-  | Error msg -> error msg
+let of_string_err str =
+  Printf.eprintf "\t\tKey.of_string((\"%s\"))\n%!" str;
+  code_of_string_err str
 
-let to_string {code} =
-  string_of_int code
+let to_string = function
+  | Char c ->
+     string_of_char c
+  | Escape l ->
+     ListLabels.fold_right
+       ~f:(fun c acc -> string_of_char c::acc) l ~init:[]
+     |> String.concat "; "
+     |> Printf.sprintf "[\\e; %s]"
 
 let compare a b =
-  a.code - b.code
+  match a, b with
+  | Escape _, Char _ -> -1
+  | Char _, Escape _ -> 1
+  | Char c, Char c' -> compare c c'
+  | Escape l, Escape l' -> compare l l'
 
-let of_curses_code kcode =
-  {code = kcode}
+let of_char c =
+  Char c
 
-let get_curses_code {code} =
-  code
+let of_sequence l =
+  assert (List.length l > 0);
+  Escape l

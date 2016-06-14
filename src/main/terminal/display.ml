@@ -6,17 +6,23 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/13 14:35:07 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/14 16:07:26 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
-module Make : Term_intf.Make_display_intf =
-  functor (Key : Term_intf.Key_intf) ->
-  functor (Graph : Shared_intf.Graph_intf
-           with type key = Key.t) ->
-  functor (Algo : Shared_intf.Algo_intf
-           with type key = Key.t
-           with type keyset = Graph.KeySet.t) ->
+module Make (Key : Term_intf.Key_intf)
+            (KeyCont : Shared_intf.Key_container_intf
+             with type key = Key.t)
+            (Graph : Shared_intf.Graph_intf
+             with type key = Key.t
+             with type keyset = KeyCont.Set.t)
+            (Algo : Shared_intf.Algo_intf
+             with type key = Key.t
+             with type keyset = KeyCont.Set.t)
+       : (Shared_intf.Display_intf
+          with type key = Key.t
+          with type vertex = Graph.V.t
+          with type edge = Graph.E.t) =
   struct
 
     type key = Key.t
@@ -43,66 +49,91 @@ module Make : Term_intf.Make_display_intf =
          *   milliseconds.
          *)
 
-        type press = Exit | Empty | Set of Graph.KeySet.t
+        (* Key presses detection with `termcap` using non-blocking `input_char`:
+         * When next() detects an input it opens a `range_millisecf` millisec
+         *   time frame in which the user may press new keys.
+         *)
 
-        let range_millisecf = 150. /. 1000.
-        let incrrange_millisecf = 50. /. 1000.
+        module KS = KeyCont.Set
 
-        let rec build_keyset kset timeout kcode =
-          if Unix.gettimeofday () > timeout then
-            if Graph.KeySet.is_empty kset
-            then Empty
-            else Set kset
-          else if kcode = Curses.Key.backspace then
-            Exit
-          else if kcode = -1 then
-            Curses.getch ()
-            |> build_keyset kset timeout
-          else
-            let k = Key.of_curses_code kcode in
-            if Graph.KeySet.mem k kset then
-              Curses.getch ()
-              |> build_keyset kset timeout
-            else
-              Curses.getch ()
-              |> build_keyset (Graph.KeySet.add k kset)
-                                    (timeout +. incrrange_millisecf)
+        type press = Exit | Empty | Set of KS.t
+
+        let range_msf = 150. /. 1000.
+        let incrrange_msf = 75. /. 1000.
+
+        let read_escape_seq () =
+          let rec aux l =
+            match input_char stdin with
+            | exception End_of_file -> l
+            | c -> aux (c::l)
+          in
+          aux []
+          |> List.rev
+
+        let return_keyset kset =
+          if KS.is_empty kset
+          then Empty
+          else Set kset
+
+        let rec build_keyset kset timeout c =
+          match c with
+          | '\004' ->
+             Exit
+          | '\027' ->
+             begin match read_escape_seq () with
+             | [] -> Exit
+             | l -> recurse_with_key kset timeout (Key.of_sequence l)
+             end
+          | c ->
+             recurse_with_key kset timeout (Key.of_char c)
+
+        and recurse_with_key kset timeout k =
+          let now = Unix.gettimeofday () in
+          wait_next_char (KS.add k kset) (now +. incrrange_msf)
+
+        and wait_next_char kset timeout =
+          let rec aux () =
+            let now = Unix.gettimeofday () in
+            if now > timeout then
+              None
+            else match input_char stdin with
+                 | exception End_of_file -> aux ()
+                 | c -> Some c
+          in
+          match aux () with
+          | None -> return_keyset kset
+          | Some c -> build_keyset kset timeout c
 
         let next () =
-          match Curses.getch () with
-          | -1 -> Empty
-          | kcode -> build_keyset
-                       Graph.KeySet.empty
-                       (Unix.gettimeofday () +. range_millisecf)
-                       kcode
+          match input_char stdin with
+          | exception End_of_file -> Empty
+          | c -> build_keyset KS.empty (Unix.gettimeofday () +. range_msf) c
 
         let loop_err (algodat_init, keys) =
           let rec aux dat =
             match next () with
-            | Empty ->
-               aux dat
-            | Exit ->
-               Ok ()
-            | Set kset ->
-               match Algo.on_key_press_err kset dat with
-               | Ok dat' -> aux dat'
-               | Error msg -> Error msg
+            | Empty -> aux dat
+            | Exit -> Ok ()
+            | Set kset -> match Algo.on_key_press_err kset dat with
+                          | Ok dat' -> aux dat'
+                          | Error msg -> Error msg
           in
           aux algodat_init
-
-
       end
 
-    let init_curses () =
-      Printf.eprintf "  Init ncurses\n%!";
-      let w = Curses.initscr () in
-      let seq = [ lazy (Curses.keypad w true)
-                ; lazy (Curses.nodelay w true)
-                ; lazy (Curses.noecho ())]
+    let init_termcap () =
+      (* TODO: check for error exceptions *)
+      let terminfo = Unix.tcgetattr Unix.stdin in
+      let newterminfo = {terminfo with
+                          Unix.c_icanon = false
+                        ; Unix.c_vmin = 0
+                        ; Unix.c_echo = false
+                        ; Unix.c_vtime = 0}
       in
-      match ListLabels.for_all ~f:(fun l -> Lazy.force l) seq with
-      | false -> Error "Ncurses init failed"
-      | true -> Ok w
+      at_exit (fun _ -> Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH terminfo);
+      Printf.eprintf "  Init ncurses\n%!";
+      Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH newterminfo;
+      Ok ()
 
 
     (* Exposed *)
@@ -137,9 +168,9 @@ module Make : Term_intf.Make_display_intf =
       | Error msg ->
          Error msg
       | Ok dat ->
-         match init_curses () with
+         match init_termcap () with
          | Error msg -> Error msg
          | Ok _ ->  let res = Input.loop_err dat in
-                    Curses.endwin ();
+                    (* Curses.endwin (); *)
                     res
   end

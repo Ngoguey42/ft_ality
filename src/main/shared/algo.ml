@@ -6,57 +6,33 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/13 15:21:23 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/14 14:19:22 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
-module Make : Shared_intf.Make_algo_intf =
-  functor (Key : Shared_intf.Key_intf) ->
-  functor (Graph : Shared_intf.Graph_intf
-           with type key = Key.t) ->
-  functor (Display : Shared_intf.Display_intf
-           with type key = Key.t
-           with type vertex = Graph.V.t
-           with type edge = Graph.E.t) ->
+module Make (Key : Shared_intf.Key_intf)
+            (KeyCont : Shared_intf.Key_container_intf
+             with type key = Key.t)
+            (Graph : Shared_intf.Graph_intf
+             with type key = Key.t
+             with type keyset = KeyCont.Set.t)
+            (Display : Shared_intf.Display_intf
+             with type key = Key.t
+             with type vertex = Graph.V.t
+             with type edge = Graph.E.t)
+       : (Shared_intf.Algo_intf
+          with type key = Key.t
+          with type keyset = KeyCont.Set.t) =
   struct
-
-    module KeyDicts =
-      struct
-        module StrMap =
-          Ftmap.Make(struct
-                      type t = string
-                      let compare = compare
-                    end)
-        module KeyMap = Ftmap.Make(Key)
-
-        type t = {
-            k_to_a : string KeyMap.t
-          ; a_to_k : Key.t StrMap.t
-          }
-
-        let empty =
-          {k_to_a = KeyMap.empty; a_to_k = StrMap.empty}
-
-        let add {k_to_a; a_to_k} action k =
-          let k_to_a = KeyMap.add k action k_to_a in
-          let a_to_k = StrMap.add action k a_to_k in
-          {k_to_a; a_to_k}
-
-        let key_of_action {a_to_k} action =
-          StrMap.find_opt action a_to_k
-
-        let action_of_key {k_to_a} key =
-          KeyMap.find_opt key k_to_a
-      end
 
     type t = {
         g : Graph.t
       ; state : Graph.V.t
       ; orig : Graph.V.t
-      ; dicts : KeyDicts.t
+      ; dicts : KeyCont.BidirDict.t
       }
     type key = Key.t
-    type keyset = Graph.KeySet.t
+    type keyset = KeyCont.Set.t
 
 
     (* Internal *)
@@ -76,9 +52,9 @@ module Make : Shared_intf.Make_algo_intf =
         | (action, key)::tl ->
            match Key.of_string_err key with
            | Error msg -> Error msg
-           | Ok k -> aux (k::klst) (KeyDicts.add dicts action k) tl
+           | Ok k -> aux (k::klst) (KeyCont.BidirDict.add dicts action k) tl
       in
-      aux [] KeyDicts.empty l
+      aux [] KeyCont.BidirDict.empty l
 
     let of_channel_and_keys_err chan dicts =
       let g = Graph.empty in
@@ -99,13 +75,13 @@ module Make : Shared_intf.Make_algo_intf =
       Printf.eprintf "\t          else: link src previous Step\n%!";
 
       let k_of_a str =
-        match KeyDicts.key_of_action dicts str with
+        match KeyCont.BidirDict.key_of_action dicts str with
         | None -> assert false
         | Some v -> v
       in
 
-      let bk_kset = Graph.KeySet.of_list [k_of_a "[BK]"] in
-      let fkleft_kset = Graph.KeySet.of_list [k_of_a "[FK]"; k_of_a "Left"] in
+      let bk_kset = KeyCont.Set.of_list [k_of_a "[BK]"] in
+      let fkleft_kset = KeyCont.Set.of_list [k_of_a "[FK]"; k_of_a "Left"] in
 
       let v1 = Graph.V.create
                @@ Graph.Vlabel.create_step [bk_kset]
@@ -152,7 +128,7 @@ module Make : Shared_intf.Make_algo_intf =
     let on_key_press_err kset ({g; state; orig} as dat) =
       assert (Graph.mem_vertex g state);
       Printf.eprintf "\tAlgo.on_key_press(%s)\n%!"
-      @@ Graph.string_of_keyset kset;
+      @@ KeyCont.Set.to_string kset;
 		  Printf.eprintf "\t  update inner states and notify Display for vertex focus\n%!";
 
       let state =
@@ -167,9 +143,9 @@ module Make : Shared_intf.Make_algo_intf =
       | Error msg -> Error msg
 
     let key_of_action {dicts} key =
-      KeyDicts.key_of_action dicts key
+      KeyCont.BidirDict.key_of_action dicts key
 
     let action_of_key {dicts} action =
-      KeyDicts.action_of_key dicts action
+      KeyCont.BidirDict.action_of_key dicts action
 
   end
