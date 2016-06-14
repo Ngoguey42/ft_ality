@@ -2,30 +2,6 @@
 --------
 <BR>
 
-# Useful links:
-
-<BR>
-> Theory of Computation by Harry H. Porter III
-> - https://www.youtube.com/playlist?list=PLbtzT1TYeoMjNOGEiaRmm_vMIwUAidnQz
-> - Lectures 1 to 12
-
-<BR>
-> Algorithms, Part I by Robert Sedgewick
-> - https://www.youtube.com/playlist?list=PLqD_OdMOd_6YixsHkd9f4sNdof4IhIima
-> - Lectures 44 to 48
-
-<BR>
-> Computerphile
-> - https://www.youtube.com/watch?v=vhiiia1_hC4
-> - https://www.youtube.com/watch?v=RjOCRYdg8BY
-> - https://www.youtube.com/watch?v=224plb3bCog
-
-<BR>
-> OCaml Curses / NCurses
-> - http://www.nongnu.org/ocaml-tmk/doc/Curses.html
-> - http://git.savannah.gnu.org/cgit/ocaml-tmk.git/tree/curses.mli
-
-
 # How to:
 
 #### `at school` run docker-machine, docker with shared volume
@@ -108,3 +84,38 @@ cd tmp_ftality
 - video : implementer un mode d'entrainement dans un jeu de combat
 - video : fichier grammaire avec paires Nom/Sequence
 ```
+
+# Useful links:
+
+<BR>
+> Theory of Computation by Harry H. Porter III
+> - https://www.youtube.com/playlist?list=PLbtzT1TYeoMjNOGEiaRmm_vMIwUAidnQz
+> - Lectures 1 to 12
+
+<BR>
+> Algorithms, Part I by Robert Sedgewick
+> - https://www.youtube.com/playlist?list=PLqD_OdMOd_6YixsHkd9f4sNdof4IhIima
+> - Lectures 44 to 48
+
+<BR>
+> Computerphile
+> - https://www.youtube.com/watch?v=vhiiia1_hC4
+> - https://www.youtube.com/watch?v=RjOCRYdg8BY
+> - https://www.youtube.com/watch?v=224plb3bCog
+
+<BR>
+> OCaml Curses / NCurses
+> - http://www.nongnu.org/ocaml-tmk/doc/Curses.html
+> - http://git.savannah.gnu.org/cgit/ocaml-tmk.git/tree/curses.mli
+
+<BR>
+> Read char by char with termcap in OCaml
+> - http://stackoverflow.com/questions/4130048/recognizing-arrow-keys-with-stdin
+
+<BR>
+> OCaml grammar
+> - http://askra.de/software/ocaml-doc/4.01/full-grammar.html
+
+<BR>
+> Cytoscape.js, graph rendering in browser with js
+> - http://js.cytoscape.org
