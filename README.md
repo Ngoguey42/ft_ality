@@ -111,6 +111,7 @@ cd tmp_ftality
 <BR>
 > Read char by char with termcap in OCaml
 > - http://stackoverflow.com/questions/4130048/recognizing-arrow-keys-with-stdin
+> - https://en.wikipedia.org/wiki/ANSI_escape_code
 
 <BR>
 > OCaml grammar

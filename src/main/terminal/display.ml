@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/14 16:07:26 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/14 16:34:11 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -61,14 +61,23 @@ module Make (Key : Term_intf.Key_intf)
         let range_msf = 150. /. 1000.
         let incrrange_msf = 75. /. 1000.
 
-        let read_escape_seq () =
+
+        let read_csi_seq () =
           let rec aux l =
             match input_char stdin with
             | exception End_of_file -> l
-            | c -> aux (c::l)
+            | c when c >= '@' && c <= '~' -> c::l
+            | c  -> aux (c::l)
           in
           aux []
           |> List.rev
+          |> List.cons '['
+
+        let read_escape_seq () =
+          match input_char stdin with
+          | exception End_of_file -> []
+          | '[' -> read_csi_seq ()
+          | c -> [c]
 
         let return_keyset kset =
           if KS.is_empty kset
