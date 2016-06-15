@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/15 12:11:18 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 13:34:21 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -20,7 +20,9 @@ module Make (Key : Shared_intf.Key_intf)
              with type vertex = Graph.V.t
              with type edge = Graph.E.t)
        : (Shared_intf.Algo_intf
-          with type key = Key.t) =
+          with type key = Key.t
+          with type keypair = KeyPair.t
+          with type kpset = KeyPair.Set.t) =
   struct
 
     type t = {
@@ -30,6 +32,8 @@ module Make (Key : Shared_intf.Key_intf)
       ; dicts : KeyPair.BidirDict.t
       }
     type key = Key.t
+    type keypair = KeyPair.t
+    type kpset = KeyPair.Set.t
 
     (* Internal *)
 
@@ -243,10 +247,6 @@ module Make (Key : Shared_intf.Key_intf)
          Ok {dat with state}
       | Error msg -> Error msg
 
-    (* let key_of_action {dicts} key = *)
-    (*   KeyPair.BidirDict.key_of_action dicts key *)
-
-    (* let action_of_key {dicts} action = *)
-    (*   KeyPair.BidirDict.action_of_key dicts action *)
-
+    let keypair_of_key {dicts} key =
+      KeyPair.BidirDict.keypair_of_key dicts key
   end

@@ -6,26 +6,26 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/15 07:52:20 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 13:12:41 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
 module Make (Key : Term_intf.Key_intf)
-            (KeyCont : Shared_intf.Key_container_intf
+            (KeyPair : Shared_intf.KeyPair_intf
              with type key = Key.t)
-            (Graph : Shared_intf.Graph_intf
-             with type key = Key.t
-             with type keyset = KeyCont.Set.t)
+            (Graph : Shared_intf.Graph_impl_intf
+             with type kpset = KeyPair.Set.t)
             (Algo : Shared_intf.Algo_intf
              with type key = Key.t
-             with type keyset = KeyCont.Set.t)
+             with type keypair = KeyPair.t
+             with type kpset = KeyPair.Set.t)
        : (Shared_intf.Display_intf
-          with type key = Key.t
+          with type keypair = KeyPair.t
           with type vertex = Graph.V.t
           with type edge = Graph.E.t) =
   struct
 
-    type key = Key.t
+    type keypair = KeyPair.t
     type vertex = Graph.V.t
     type edge = Graph.E.t
 
@@ -54,7 +54,7 @@ module Make (Key : Term_intf.Key_intf)
          *   time frame in which the user may press new keys.
          *)
 
-        module KS = KeyCont.Set
+        module KS = KeyPair.Set
 
         type press = Exit | Empty | Set of KS.t
 
@@ -84,23 +84,25 @@ module Make (Key : Term_intf.Key_intf)
           then Empty
           else Set kset
 
-        let rec build_keyset kset timeout c =
+        let rec build_keyset dat kset timeout c =
           match c with
           | '\004' ->
              Exit
           | '\027' ->
              begin match read_escape_seq () with
              | [] -> Exit
-             | l -> recurse_with_key kset timeout (Key.of_sequence l)
+             | l -> recurse_with_key dat kset timeout (Key.of_sequence l)
              end
           | c ->
-             recurse_with_key kset timeout (Key.of_char c)
+             recurse_with_key dat kset timeout (Key.of_char c)
 
-        and recurse_with_key kset timeout k =
+        and recurse_with_key dat kset timeout k =
           let now = Unix.gettimeofday () in
-          wait_next_char (KS.add k kset) (now +. incrrange_msf)
+          match Algo.keypair_of_key dat k with
+          | None -> wait_next_char dat kset (now +. incrrange_msf)
+          | Some kp -> wait_next_char dat (KS.add kp kset) (now +. incrrange_msf)
 
-        and wait_next_char kset timeout =
+        and wait_next_char dat kset timeout =
           let rec aux () =
             let now = Unix.gettimeofday () in
             if now > timeout then
@@ -111,19 +113,19 @@ module Make (Key : Term_intf.Key_intf)
           in
           match aux () with
           | None -> return_keyset kset
-          | Some c -> build_keyset kset timeout c
+          | Some c -> build_keyset dat kset timeout c
 
-        let next () =
+        let next dat =
           match input_char stdin with
           | exception End_of_file -> Empty
-          | c -> build_keyset KS.empty (Unix.gettimeofday () +. range_msf) c
+          | c -> build_keyset dat KS.empty (Unix.gettimeofday () +. range_msf) c
 
-        let loop_err (algodat_init, keys) =
+        let loop_err algodat_init =
           let rec aux dat =
-            match next () with
+            match next dat with
             | Empty -> aux dat
             | Exit -> Ok ()
-            | Set kset -> match Algo.on_key_press_err kset dat with
+            | Set kset -> match Algo.on_key_press_err dat kset with
                           | Ok dat' -> aux dat'
                           | Error msg -> Error msg
           in
@@ -146,6 +148,11 @@ module Make (Key : Term_intf.Key_intf)
 
 
     (* Exposed *)
+
+    let declare_keypair kp =
+      Printf.eprintf "\t\tDisplay.declare_keypair(%s)\n%!"
+                     (KeyPair.to_string kp);
+      ()
 
     let declare_vertex v =
       Printf.eprintf "\t\tDisplay.declare_vertex(%s)\n%!"
@@ -174,12 +181,8 @@ module Make (Key : Term_intf.Key_intf)
       Printf.eprintf "  if error in Algo.create_err, exit with message\n%!";
       Printf.eprintf "  else continue\n%!";
       match Algo.create_err stdin with
-      | Error msg ->
-         Error msg
-      | Ok dat ->
-         match init_termcap () with
-         | Error msg -> Error msg
-         | Ok _ ->  let res = Input.loop_err dat in
-                    (* Curses.endwin (); *)
-                    res
+      | Error msg -> Error msg
+      | Ok dat -> match init_termcap () with
+                  | Error msg -> Error msg
+                  | Ok _ ->  Input.loop_err dat
   end

@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/15 12:17:28 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 13:04:01 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -112,10 +112,12 @@ module type Algo_intf =
   sig
     type t
     type key
-    type keyset
+    type keypair
+    type kpset
 
     val create_err : in_channel -> (t, string) result
-    val on_key_press_err : t -> key -> (t, string) result
+    val on_key_press_err : t -> kpset -> (t, string) result
+    val keypair_of_key : t -> key -> keypair option
   end
 
 (* Module Display (Specific to display) *)
