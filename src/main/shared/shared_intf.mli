@@ -6,15 +6,14 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/15 10:55:33 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 12:17:28 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
 (* Most modules define types, a module may use a type from an other module in
  *  its signature if it is defined below in the hierarchy.
  * Modules hierarchy:
- * - Key
- * - GameKey
+ * - Key, GameKey
  * - GameKey_container
  * - Graph
  * - Display, Algo
@@ -69,34 +68,33 @@ module type KeyPair_intf =
 
       val empty : t
       val add_err : t -> elt -> (t, string) result
-      val gamekey_of_gamekey : t -> gamekey -> elt option
-      val gamekey_of_key : t -> key -> elt option
+      val keypair_of_gamekey : t -> gamekey -> elt option
+      val keypair_of_key : t -> key -> elt option
     end
   end
 
 (* Module Graph (Common to all displays) *)
-module type Graph_intf =
+module type Graph_impl_intf =
   sig
-    type key
-    type keyset
+    type kpset
 
     (* Vertex Label (attached to Graph.V.t) *)
     module Vlabel : sig
       type state = Step | Spell of string
       type t = {
-          cost : keyset list
+          cost : kpset list
         ; state : state
         }
 
-      val create_spell : keyset list -> string -> t
-      val create_step : keyset list -> t
+      val create_spell : kpset list -> string -> t
+      val create_step : kpset list -> t
       val to_string : t -> string
-      val get_cost : t -> keyset list
+      val get_cost : t -> kpset list
     end
 
     (* Edge Label (attached to Graph.E.t) *)
     module Elabel : sig
-      type t = keyset
+      type t = kpset
 
       val compare : t -> t -> int
       val default : t
@@ -116,19 +114,18 @@ module type Algo_intf =
     type key
     type keyset
 
-    val create_err : in_channel -> ((t * key list), string) result
-    val on_key_press_err : keyset -> t -> (t, string) result
-    val key_of_action : t -> string -> key option
-    val action_of_key : t -> key -> string option
+    val create_err : in_channel -> (t, string) result
+    val on_key_press_err : t -> key -> (t, string) result
   end
 
 (* Module Display (Specific to display) *)
 module type Display_intf =
   sig
-    type key
+    type keypair
     type vertex
     type edge
 
+    val declare_keypair : keypair -> unit
     val declare_vertex : vertex -> unit
     val declare_edge : edge -> unit
     val focus_vertex_err : vertex -> (unit, string) result

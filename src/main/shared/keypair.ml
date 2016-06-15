@@ -6,14 +6,13 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/15 10:58:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/15 10:59:09 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 12:17:50 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
 module Make (Key : Shared_intf.Key_intf)
-            (GameKey : Shared_intf.GameKey_intf
-             with type key = Key.t)
-       : (Shared_intf.GameKey_container_intf
+            (GameKey : Shared_intf.GameKey_intf)
+       : (Shared_intf.KeyPair_intf
           with type key = Key.t
           with type gamekey = GameKey.t) =
   struct
@@ -35,13 +34,12 @@ module Make (Key : Shared_intf.Key_intf)
           Printf.sprintf "%s:%s" (GameKey.to_string gk) (Key.to_string k)
 
         let compare_gamekey (gk, _) (gk', _) =
-          Key.compare gk gk'
+          GameKey.compare gk gk'
 
         let compare_key (_, k) (_, k') =
           Key.compare k k'
 
         let compare = compare_gamekey
-
       end
     include Impl
 
@@ -59,52 +57,55 @@ module Make (Key : Shared_intf.Key_intf)
 
     module BidirDict =
       struct
-        module NameSet =
-          Ftmap.Make(struct
-                      type t = gamekey
-                      let compare = Gamekey.compare_name
+        type elt = t
+        module GameKeySet =
+          Avl.Make(struct
+                      type t = elt
+                      let compare = compare_gamekey
                     end)
         module KeySet =
-          Ftmap.Make(struct
-                      type t = gamekey
-                      let compare = Gamekey.compare_key
+          Avl.Make(struct
+                      type t = elt
+                      let compare = compare_key
                     end)
 
         type t = {
-            k_to_a : KeySet.t
-          ; a_to_k : NameSet.t
+            kp_of_k : KeySet.t
+          ; kp_of_gk : GameKeySet.t
           }
 
         let empty =
-          {k_to_a = KeySet.empty; a_to_k = NameSet.empty}
+          {kp_of_k = KeySet.empty; kp_of_gk = GameKeySet.empty}
 
-        let add_err {k_to_a; a_to_k} gk =
-          match NameSet.mem gk, KeySet.mem gk with
+        let add_err {kp_of_k; kp_of_gk} kp =
+          match GameKeySet.mem kp kp_of_gk, KeySet.mem kp kp_of_k with
           | true, true ->
-             GameKey.to_string gk
+             to_string kp
              |> Printf.sprintf ("[GameKey_container.add_err] "
-                                ^^ "%d both keys already bound")
+                                ^^ "%s both keys already bound")
              |> (fun v -> Error v)
           | true, false ->
-             GameKey.to_string gk
+             to_string kp
              |> Printf.sprintf ("[GameKey_container.add_err] "
-                                ^^ "%d game name already bound")
+                                ^^ "%s gamekey already bound")
              |> (fun v -> Error v)
           | false, true ->
-             GameKey.to_string gk
+             to_string kp
              |> Printf.sprintf ("[GameKey_container.add_err] "
-                                ^^ "%d key already bound")
+                                ^^ "%s key already bound")
              |> (fun v -> Error v)
           | false, false ->
-             let k_to_a = KeySet.add gk k_to_a in
-             let a_to_k = NameSet.add gk a_to_k in
-             Ok {k_to_a; a_to_k}
+             let kp_of_k = KeySet.add kp kp_of_k in
+             let kp_of_gk = GameKeySet.add kp kp_of_gk in
+             Ok {kp_of_k; kp_of_gk}
 
-        let key_of_action {a_to_k} action =
-          NameSet.find_opt action a_to_k
+        let keypair_of_gamekey {kp_of_gk} gamekey =
+          GameKeySet.binary_find
+            (fun (gamekey', _) -> GameKey.compare gamekey gamekey') kp_of_gk
 
-        let action_of_key {k_to_a} key =
-          KeySet.find_opt key k_to_a
+        let keypair_of_key {kp_of_k} key =
+          KeySet.binary_find
+            (fun (_, key') -> Key.compare key key') kp_of_k
       end
 
   end
