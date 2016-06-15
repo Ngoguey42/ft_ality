@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/15 13:53:32 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 14:10:11 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -62,7 +62,7 @@ module Make (Key : Shared_intf.Key_intf)
 
         let fill_graph orig g dicts =
 
-          (* KeyPair of str from dicts *)
+          (* `keypair` of `str` from `dicts` *)
           let kp_of_str str =
             match GameKey.of_string_err str with
             | Error _ -> assert false
@@ -71,13 +71,13 @@ module Make (Key : Shared_intf.Key_intf)
                        | Some kp -> kp
           in
 
-          (* KeyPair Set of str-list *)
+          (* `keypair set` of `str list` *)
           let kpset_of_strll l =
             ListLabels.map ~f:kp_of_str l
             |> KeyPair.Set.of_list
           in
 
-          (* Vertex of graph or creation *)
+          (* `vertex list` of `kpset list` + (`graph` | `create`) *)
           let find_vertex_or_create g kset_l =
             let is_vertex v =
               let kset_l' =
@@ -96,7 +96,7 @@ module Make (Key : Shared_intf.Key_intf)
             | Some v -> v
           in
 
-          (* Vertex list of str-list-list + name *)
+          (* `vertex list` of `str list list + `name` *)
           let vertices_of_strll_name g strll name =
             assert (List.length strll > 0);
             let rec aux (kset_l, verts) = function
@@ -113,7 +113,7 @@ module Make (Key : Shared_intf.Key_intf)
             |> List.rev
           in
 
-          (* New edge list of vertex list *)
+          (* `new-edge list` of `vertex list` *)
           let edges_of_vertices g vl =
             assert (List.length vl > 1);
             let rec aux acc = function
@@ -129,7 +129,7 @@ module Make (Key : Shared_intf.Key_intf)
             aux [] vl
           in
 
-          (* graph of graph + stringified-combo *)
+          (* `graph` of `graph` + `stringified combo` *)
           let add_combo strll name g =
             vertices_of_strll_name g strll name
             |> List.cons orig
@@ -137,7 +137,7 @@ module Make (Key : Shared_intf.Key_intf)
             |> ListLabels.fold_left ~f:Graph.add_edge_e ~init:g
           in
 
-          (* graph of graph + stringified-comboS *)
+          (* `graph` of `graph` + `stringified comboS` *)
           let add_combos combos g =
             ListLabels.fold_left
               ~f:(fun g (strll, name) ->
@@ -231,6 +231,11 @@ module Make (Key : Shared_intf.Key_intf)
       Printf.eprintf "\tAlgo.on_key_press(%s)%!"
       @@ KeyPair.Set.to_string kset;
 
+      let state =
+        match Graph.binary_find_succ_e (Graph.Elabel.compare kset) g state with
+        | None -> orig
+        | Some e -> Graph.E.dst e
+      in
       Graph.fold_succ_e (fun e acc ->
           let s = Graph.E.label e
                   |> Graph.Elabel.to_string
@@ -239,12 +244,6 @@ module Make (Key : Shared_intf.Key_intf)
         ) g state []
       |> String.concat "; "
       |> Printf.eprintf " succ_e(%s)\n%!";
-
-      let state =
-        match Graph.binary_find_succ_e (Graph.Elabel.compare kset) g state with
-        | None -> orig
-        | Some e -> Graph.E.dst e
-      in
       match Display.focus_vertex_err state with
       | Ok () ->
          Printf.eprintf "\n%!";

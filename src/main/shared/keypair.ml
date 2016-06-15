@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/15 10:58:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/15 12:17:50 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 14:00:06 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -29,6 +29,9 @@ module Make (Key : Shared_intf.Key_intf)
           match GameKey.of_string_err gamekey, Key.of_string_err key with
           | Ok gk, Ok k -> Ok (gk, k)
           | Error msg, _ | _, Error msg -> Error msg
+
+        let of_key key =
+          GameKey.default, key
 
         let to_string (gk, k) =
           Printf.sprintf "%s:%s" (GameKey.to_string gk) (Key.to_string k)

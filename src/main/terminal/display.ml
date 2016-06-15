@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/15 13:12:41 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 14:14:58 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -55,71 +55,82 @@ module Make (Key : Term_intf.Key_intf)
          *)
 
         module KS = KeyPair.Set
-
+        (* TODO: implement clear screan with \012 *)
         type press = Exit | Empty | Set of KS.t
 
         let range_msf = 150. /. 1000.
         let incrrange_msf = 125. /. 1000.
 
-
-        let read_csi_seq () =
-          let rec aux l =
-            match input_char stdin with
-            | exception End_of_file -> l
-            | c when c >= '@' && c <= '~' -> c::l
-            | c  -> aux (c::l)
-          in
-          aux []
-          |> List.rev
-          |> List.cons '['
-
-        let read_escape_seq () =
-          match input_char stdin with
-          | exception End_of_file -> []
-          | '[' -> read_csi_seq ()
-          | c -> [c]
-
-        let return_keyset kset =
-          if KS.is_empty kset
-          then Empty
-          else Set kset
-
-        let rec build_keyset dat kset timeout c =
-          match c with
-          | '\004' ->
-             Exit
-          | '\027' ->
-             begin match read_escape_seq () with
-             | [] -> Exit
-             | l -> recurse_with_key dat kset timeout (Key.of_sequence l)
-             end
-          | c ->
-             recurse_with_key dat kset timeout (Key.of_char c)
-
-        and recurse_with_key dat kset timeout k =
-          let now = Unix.gettimeofday () in
-          match Algo.keypair_of_key dat k with
-          | None -> wait_next_char dat kset (now +. incrrange_msf)
-          | Some kp -> wait_next_char dat (KS.add kp kset) (now +. incrrange_msf)
-
-        and wait_next_char dat kset timeout =
-          let rec aux () =
-            let now = Unix.gettimeofday () in
-            if now > timeout then
-              None
-            else match input_char stdin with
-                 | exception End_of_file -> aux ()
-                 | c -> Some c
-          in
-          match aux () with
-          | None -> return_keyset kset
-          | Some c -> build_keyset dat kset timeout c
-
         let next dat =
+
+          (* `char list` of `stdin` *)
+          let read_csi_seq () =
+            let rec aux l =
+              match input_char stdin with
+              | exception End_of_file -> l
+              | c when c >= '@' && c <= '~' -> c::l
+              | c  -> aux (c::l)
+            in
+            aux []
+            |> List.rev
+            |> List.cons '['
+          in
+
+          (* `char list` of `stdin` *)
+          let read_escape_seq () =
+            match input_char stdin with
+            | exception End_of_file -> []
+            | '[' -> read_csi_seq ()
+            | c -> [c]
+          in
+
+          (* `press` of `keypair set` *)
+          let return_keyset kset =
+            if KS.is_empty kset
+            then Empty
+            else Set kset
+          in
+
+          (* 1. scan a given `char` and return or recurse with `key` *)
+          let rec build_keyset kset timeout c =
+            match c with
+            | '\004' ->
+               Exit
+            | '\027' ->
+               begin match read_escape_seq () with
+               | [] -> Exit
+               | l -> recurse_with_key kset timeout (Key.of_sequence l)
+               end
+            | c ->
+               recurse_with_key kset timeout (Key.of_char c)
+
+          (* 2. from a `key` create a `keypair` and add it to `keypair set` *)
+          and recurse_with_key kset timeout k =
+            let now = Unix.gettimeofday () in
+            match Algo.keypair_of_key dat k with
+            | None -> let kp = KeyPair.of_key k in
+                      wait_next_char (KS.add kp kset) (now +. incrrange_msf)
+            | Some kp -> wait_next_char (KS.add kp kset) (now +. incrrange_msf)
+
+          (* 3. wait for the next char and return or recurse with `char` *)
+          and wait_next_char kset timeout =
+            let rec aux () =
+              let now = Unix.gettimeofday () in
+              if now > timeout then
+                None
+              else match input_char stdin with
+                   | exception End_of_file -> aux ()
+                   | c -> Some c
+            in
+            match aux () with
+            | None -> return_keyset kset
+            | Some c -> build_keyset kset timeout c
+          in
           match input_char stdin with
           | exception End_of_file -> Empty
-          | c -> build_keyset dat KS.empty (Unix.gettimeofday () +. range_msf) c
+          | c -> build_keyset KS.empty (Unix.gettimeofday () +. range_msf) c
 
+        (* Program main loop *)
         let loop_err algodat_init =
           let rec aux dat =
             match next dat with

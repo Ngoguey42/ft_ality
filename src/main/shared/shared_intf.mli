@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/15 13:04:01 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 14:00:24 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -52,6 +52,7 @@ module type KeyPair_intf =
 
     val default : t
     val of_strings_err : string -> string -> (t, string) result
+    val of_key : key -> t
     val to_string : t -> string
     val compare : t -> t -> int
 
