@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/15 08:03:14 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 10:55:33 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -14,7 +14,8 @@
  *  its signature if it is defined below in the hierarchy.
  * Modules hierarchy:
  * - Key
- * - Key_containers
+ * - GameKey
+ * - GameKey_container
  * - Graph
  * - Display, Algo
  *)
@@ -30,28 +31,46 @@ module type Key_intf =
     val of_string_err : string -> (t, string) result
     val to_string : t -> string
     val compare : t -> t -> int
-
   end
 
-(* Module Key container (Common to all displays) *)
-module type Key_container_intf =
+(* Module GameKey (Common to all displays) *)
+module type GameKey_intf =
+  sig
+    type t
+
+    val default : t
+    val of_string_err : string -> (t, string) result
+    val to_string : t -> string
+    val compare : t -> t -> int
+  end
+
+(* Module GameKey container (Common to all displays) *)
+module type KeyPair_intf =
   sig
     type key
+    type gamekey
+    type t
+
+    val default : t
+    val of_strings_err : string -> string -> (t, string) result
+    val to_string : t -> string
+    val compare : t -> t -> int
 
     module Set : sig
       include Avl.S
-              with type elt = key
+              with type elt = t
 
       val to_string : t -> string
     end
 
     module BidirDict : sig
+      type elt = t
       type t
 
       val empty : t
-      val add : t -> string -> key -> t
-      val key_of_action : t -> string -> key option
-      val action_of_key : t -> key -> string option
+      val add_err : t -> elt -> (t, string) result
+      val gamekey_of_gamekey : t -> gamekey -> elt option
+      val gamekey_of_key : t -> key -> elt option
     end
   end
 

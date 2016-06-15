@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/15 10:12:08 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 10:14:42 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -67,7 +67,7 @@ module Make (Key : Shared_intf.Key_intf)
             | Some v -> v
           in
 
-          (* Key set action list *)
+          (* Key set of action list *)
           let ks_of_al l =
             ListLabels.map ~f:k_of_a l
             |> KeyCont.Set.of_list

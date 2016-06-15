@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/14 13:59:02 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/15 08:52:53 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 10:16:21 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -57,8 +57,6 @@ module Make (Key : Shared_intf.Key_intf)
         let to_string = KeyCont.Set.to_string
 
         let compare a b =
-          (* Printf.eprintf "  Elabel.compare (%s) vs (%s) \n%!" *)
-          (*                (to_string a) (to_string b); *)
           KeyCont.Set.compare a b
 
       end
