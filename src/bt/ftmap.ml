@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/08 11:58:46 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/13 13:32:44 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 09:09:52 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -54,6 +54,7 @@ module type S =
     (* val find : (key -> bool) -> 'a t -> 'a option *)
     val find_opt : key -> 'a t -> 'a option
     val find_exn : key -> 'a t -> 'a
+    val find_map : (key -> 'a -> 'b option) -> 'a t -> 'b option
     val binary_find : (key -> int) -> 'a t -> (key * 'a) option
     val check : 'a t -> bool
   end
@@ -246,6 +247,20 @@ module Make : Make_intf =
       in
       aux t
 
+    (* val find_map : (key -> 'a -> 'b option) -> 'a t -> 'b option *)
+    let find_map f t =
+      let rec aux = function
+        | Empty ->
+           None
+        | Node(lhs, (k, v), rhs) ->
+           match aux lhs with
+           | None -> begin match f k v with
+                     | None -> aux rhs
+                     | ret -> ret
+                     end
+           | ret -> ret
+      in
+      aux t
 
     (* O(n) *)
     let cardinal t =

@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/08 11:23:29 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/13 13:23:33 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 09:28:28 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -91,6 +91,14 @@ Ftgraph_intf.Make_PersistentDigraphAbstractLabeled_intf =
     let mem_vertex {vertices} v =
       VertexMap.mem v vertices
 
+    let mem_edge {vertices} src dst =
+      match VertexMap.find_opt src vertices with
+      | None -> false
+      | Some eset -> match EdgeSet.find (fun e ->
+                               E.dst e |> V.compare dst = 0) eset with
+                     | None -> false
+                     | Some _ -> true
+
     let iter_vertex f {vertices} =
       VertexMap.iter (fun v _ -> f v) vertices
 
@@ -112,6 +120,13 @@ Ftgraph_intf.Make_PersistentDigraphAbstractLabeled_intf =
       match VertexMap.find_opt v vertices with
       | None -> None
       | Some eset -> EdgeSet.binary_find (fun e -> f (E.label e)) eset
+
+    let find_vertex f {vertices} =
+      VertexMap.find_map (fun v _ ->
+          if f v
+          then Some v
+          else None
+        ) vertices
 
     let invariants g =
       (*

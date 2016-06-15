@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/15 08:54:04 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 09:36:36 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -93,20 +93,36 @@ module Make (Key : Shared_intf.Key_intf)
         ListLabels.map ~f:k_of_a l
         |> KeyCont.Set.of_list
       in
-      let vert_of_kll_name ll name =
+
+      let find_vertex_or_create g kset_l =
+        let is_vertex v =
+          let kset_l' =
+            Graph.V.label v
+            |> Graph.Vlabel.get_cost
+          in
+          List.length kset_l = List.length kset_l'
+          && ListLabels.for_all2
+               ~f:(fun a b ->
+                 KeyCont.Set.compare a b = 0
+               ) kset_l kset_l'
+        in
+        match Graph.find_vertex is_vertex g with
+        | None -> Graph.Vlabel.create_step kset_l
+                  |> Graph.V.create
+        | Some v -> v
+      in
+      let vert_of_kll_name g ll name =
         assert (List.length ll > 0);
         let rec aux (kset_l, verts) = function
           | hd::[] -> let kset_l = hd::kset_l in
                       let v =
                         Graph.Vlabel.create_spell kset_l name
                         |> Graph.V.create
+
                       in
                       v::verts
           | hd::tl -> let kset_l = hd::kset_l in
-                      let v =
-                        Graph.Vlabel.create_step kset_l
-                        |> Graph.V.create
-                      in
+                      let v = find_vertex_or_create g kset_l in
                       aux (kset_l, v::verts) tl
           | [] -> assert false
         in
@@ -114,9 +130,11 @@ module Make (Key : Shared_intf.Key_intf)
         |> aux ([], [])
         |> List.rev
       in
-      let edges_of_vertices vl =
-        assert (List.length vl > 1);
-        let rec aux acc = function
+      let edges_of_vertices g vl =
+          assert (List.length vl > 1);
+          let rec aux acc = function
+          | src::dst::tl when Graph.mem_edge g src dst ->
+             aux acc (dst::tl)
           | src::dst::tl ->
              let kset = Graph.V.label dst |> Graph.Vlabel.get_cost |> List.hd in
              let e = Graph.E.create src kset dst in
@@ -128,9 +146,9 @@ module Make (Key : Shared_intf.Key_intf)
       in
 
       let add_combo kll name g =
-        vert_of_kll_name kll name
+        vert_of_kll_name g kll name
         |> List.cons orig
-        |> edges_of_vertices
+        |> edges_of_vertices g
         |> ListLabels.fold_left ~f:Graph.add_edge_e ~init:g
       in
 
@@ -212,7 +230,8 @@ module Make (Key : Shared_intf.Key_intf)
       in
       match Display.focus_vertex_err state with
       | Ok () ->
-         Printf.eprintf "\t  Return inner state saved in type t for later use\n%!";
+         Printf.eprintf "\n%!";
+         (* Printf.eprintf "\t  Return inner state saved in type t for later use\n%!"; *)
          Ok {dat with state}
       | Error msg -> Error msg
 

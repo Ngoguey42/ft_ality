@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 16:33:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/10 14:47:57 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 09:22:01 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -117,7 +117,7 @@ module type G_intf =
     (* val in_degree : t -> vertex -> int *)
 
     val mem_vertex : t -> vertex -> bool
-    (* val mem_edge : t -> vertex -> vertex -> bool *)
+    val mem_edge : t -> vertex -> vertex -> bool
     (* val mem_edge_e : t -> edge -> bool *)
     (* val find_edge : t -> vertex -> vertex -> edge *)
     (* val find_all_edges : t -> vertex -> vertex -> edge list *)
@@ -148,6 +148,7 @@ module type G_intf =
 
     (* Not Present in OcamlGraph *)
     val binary_find_succ_e : (E.label -> int) -> t -> vertex -> edge option
+    val find_vertex : (V.t -> bool) -> t -> vertex option
 
     val invariants : t -> bool
   end
