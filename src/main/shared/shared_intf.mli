@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/14 16:07:39 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 08:03:14 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -72,6 +72,7 @@ module type Graph_intf =
       val create_spell : keyset list -> string -> t
       val create_step : keyset list -> t
       val to_string : t -> string
+      val get_cost : t -> keyset list
     end
 
     (* Edge Label (attached to Graph.E.t) *)

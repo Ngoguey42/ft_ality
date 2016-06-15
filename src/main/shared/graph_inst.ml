@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/14 13:59:02 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/14 14:16:47 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 08:52:53 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -39,22 +39,27 @@ module Make (Key : Shared_intf.Key_intf)
             | Step -> "step"
             | Spell name -> name
           in
-          ListLabels.fold_right
-            ~f:(fun kset acc -> (KeyCont.Set.to_string kset)::acc) ~init:[] cost
+          ListLabels.fold_left
+            ~f:(fun acc kset -> (KeyCont.Set.to_string kset)::acc) ~init:[] cost
           |> String.concat "; "
-          |> Printf.sprintf "%s[ %s ]" t
+          |> Printf.sprintf "\027[35m%s\027[0m[ %s ]" t
+
+        let get_cost {cost} =
+          cost
       end
 
     module Elabel =
       struct
         type t = KeyCont.Set.t
 
-        let compare a b =
-          KeyCont.Set.compare a b
-
         let default = KeyCont.Set.empty
 
         let to_string = KeyCont.Set.to_string
+
+        let compare a b =
+          (* Printf.eprintf "  Elabel.compare (%s) vs (%s) \n%!" *)
+          (*                (to_string a) (to_string b); *)
+          KeyCont.Set.compare a b
 
       end
 

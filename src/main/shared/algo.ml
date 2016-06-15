@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/14 14:19:22 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 08:54:04 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -42,9 +42,20 @@ module Make (Key : Shared_intf.Key_intf)
       Printf.eprintf "\t    build a (Key.t list) to return to Display\n%!";
       Printf.eprintf "\t    build both dictionaries ((string * Key.t) Ftmap.t) ((Key.t * string) Ftmap.t) for future use\n%!";
       Printf.eprintf "\t    foreach shortcuts: call Key.of_string()\n%!";
-      let l =  [ ("Left", "left")
-               ; ("[BK]", "s")
-               ; ("[FK]", "w")]
+      let l =  [
+          ("Block", "q")
+        ; ("Down", "down")
+        ; ("Flip Stance", "w")
+        ; ("Left", "left")
+        ; ("Right", "right")
+        ; ("Tag", "e")
+        ; ("Throw", "a")
+        ; ("Up", "up")
+        ; ("[BK]", "4")
+        ; ("[BP]", "2")
+        ; ("[FK]", "3")
+        ; ("[FP]", "1")
+        ]
       in
       let rec aux klst dicts = function
         | [] ->
@@ -58,7 +69,6 @@ module Make (Key : Shared_intf.Key_intf)
 
     let of_channel_and_keys_err chan dicts =
       let g = Graph.empty in
-      Printf.eprintf "\t  EXEMPLE WITH: Super Punch:[BK],[FK]+Left\n%!";
       Printf.eprintf "\t  read fsa from file and build graph\n%!";
       Printf.eprintf "\t    add an origin vertex to graph\n%!";
       let orig = Graph.V.create (Graph.Vlabel.create_step []) in
@@ -79,22 +89,74 @@ module Make (Key : Shared_intf.Key_intf)
         | None -> assert false
         | Some v -> v
       in
-
-      let bk_kset = KeyCont.Set.of_list [k_of_a "[BK]"] in
-      let fkleft_kset = KeyCont.Set.of_list [k_of_a "[FK]"; k_of_a "Left"] in
-
-      let v1 = Graph.V.create
-               @@ Graph.Vlabel.create_step [bk_kset]
+      let ks_of_kl l =
+        ListLabels.map ~f:k_of_a l
+        |> KeyCont.Set.of_list
       in
-      let v2 = Graph.V.create
-               @@ Graph.Vlabel.create_spell [fkleft_kset; bk_kset] "Super Punch"
+      let vert_of_kll_name ll name =
+        assert (List.length ll > 0);
+        let rec aux (kset_l, verts) = function
+          | hd::[] -> let kset_l = hd::kset_l in
+                      let v =
+                        Graph.Vlabel.create_spell kset_l name
+                        |> Graph.V.create
+                      in
+                      v::verts
+          | hd::tl -> let kset_l = hd::kset_l in
+                      let v =
+                        Graph.Vlabel.create_step kset_l
+                        |> Graph.V.create
+                      in
+                      aux (kset_l, v::verts) tl
+          | [] -> assert false
+        in
+        ListLabels.map ~f:ks_of_kl ll
+        |> aux ([], [])
+        |> List.rev
+      in
+      let edges_of_vertices vl =
+        assert (List.length vl > 1);
+        let rec aux acc = function
+          | src::dst::tl ->
+             let kset = Graph.V.label dst |> Graph.Vlabel.get_cost |> List.hd in
+             let e = Graph.E.create src kset dst in
+             aux (e::acc) (dst::tl)
+          | [] -> assert false
+          | [_] -> acc
+        in
+        aux [] vl
       in
 
-      let e1 = Graph.E.create orig bk_kset v1 in
-      let e2 = Graph.E.create v1 fkleft_kset v2 in
+      let add_combo kll name g =
+        vert_of_kll_name kll name
+        |> List.cons orig
+        |> edges_of_vertices
+        |> ListLabels.fold_left ~f:Graph.add_edge_e ~init:g
+      in
 
-      let g = Graph.add_edge_e g e1 in
-      let g = Graph.add_edge_e g e2 in
+      let add_combos combos g=
+        ListLabels.fold_left
+          ~f:(fun g (kll, name) ->
+            add_combo kll name g) ~init:g combos
+      in
+        (* ; ("[BK]", "s") 4 *)
+        (* ; ("[BP]", "d") 2 *)
+        (* ; ("[FK]", "z") 3 *)
+        (* ; ("[FP]", "x") 1 *)
+      let moves =
+        [
+          ([["Left"; "[BP]"]; ["[BK]"]], "Horror Show")
+        ; ([["Right"; "[BP]"]; ["[BP]"]], "Outworld Bash")
+        ; ([["Left"; "[FK]"]; ["[FK]"]], "Tarkatan Blows")
+        ; ([["Left"; "[FK]"]; ["[FP]"]; ["Right"; "[FP]"]], "Open Wound")
+        ; ([["Left"; "[FK]"]; ["[BP]"]; ["[BP]"]], "Easy Kill")
+        ; ([["Right"; "[BK]"]; ["[BK]"]], "Doom Kicks")
+        ]
+
+      in
+
+
+      let g = add_combos moves g in
 
       Printf.eprintf "\t    declare all vertices with Display.declare_vertex()\n%!";
       Graph.iter_vertex (fun v ->
@@ -102,6 +164,7 @@ module Make (Key : Shared_intf.Key_intf)
         ) g;
       Printf.eprintf "\t    declare all edges with Display.declare_edge()\n%!";
       Graph.iter_vertex (fun v ->
+          Printf.eprintf "\t    Vert:\n%!";
           Graph.iter_succ_e (fun e ->
               Display.declare_edge e
             ) g v
@@ -127,9 +190,20 @@ module Make (Key : Shared_intf.Key_intf)
 
     let on_key_press_err kset ({g; state; orig} as dat) =
       assert (Graph.mem_vertex g state);
-      Printf.eprintf "\tAlgo.on_key_press(%s)\n%!"
+      Printf.eprintf "\tAlgo.on_key_press(%s)%!"
       @@ KeyCont.Set.to_string kset;
-		  Printf.eprintf "\t  update inner states and notify Display for vertex focus\n%!";
+
+      Graph.fold_succ_e (fun e acc ->
+          let s = Graph.E.label e
+                  |> Graph.Elabel.to_string
+          in
+          s::acc
+        ) g state []
+      |> String.concat "; "
+      |> Printf.eprintf " succ_e(%s)\n%!";
+
+
+		  (* Printf.eprintf "\t  update inner states and notify Display for vertex focus\n%!"; *)
 
       let state =
         match Graph.binary_find_succ_e (Graph.Elabel.compare kset) g state with

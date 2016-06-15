@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 16:34:22 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/14 16:05:59 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 08:25:31 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -25,6 +25,16 @@ let code_of_string_err = function
 let string_of_char c =
   Printf.sprintf "'%s'" (Char.escaped c)
 
+let string_of_escape = function
+  | ['['; 'D'] -> "left"
+  | ['['; 'C'] -> "right"
+  | ['['; 'B'] -> "down"
+  | ['['; 'A'] -> "up"
+  | l -> ListLabels.fold_right
+           ~f:(fun c acc -> string_of_char c::acc) l ~init:[]
+         |> String.concat "; "
+         |> Printf.sprintf "[\\e; %s]"
+
 
 (* Exposed *)
 
@@ -35,13 +45,8 @@ let of_string_err str =
   code_of_string_err str
 
 let to_string = function
-  | Char c ->
-     string_of_char c
-  | Escape l ->
-     ListLabels.fold_right
-       ~f:(fun c acc -> string_of_char c::acc) l ~init:[]
-     |> String.concat "; "
-     |> Printf.sprintf "[\\e; %s]"
+  | Char c -> string_of_char c
+  | Escape l -> string_of_escape l
 
 let compare a b =
   match a, b with

@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/14 16:34:11 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 07:52:20 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -59,7 +59,7 @@ module Make (Key : Term_intf.Key_intf)
         type press = Exit | Empty | Set of KS.t
 
         let range_msf = 150. /. 1000.
-        let incrrange_msf = 75. /. 1000.
+        let incrrange_msf = 125. /. 1000.
 
 
         let read_csi_seq () =
