@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/10 11:51:10 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/15 13:33:15 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 13:50:16 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -24,7 +24,7 @@ module rec K : Term_intf.Key_intf = Key
    and A : (Shared_intf.Algo_intf
             with type key = K.t
             with type keypair = KP.t
-            with type kpset = KP.Set.t) = Algo.Make(K)(KP)(G)(D)
+            with type kpset = KP.Set.t) = Algo.Make(K)(GK)(KP)(G)(D)
 
 
 let () =

@@ -6,13 +6,15 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/15 13:34:21 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/15 13:53:32 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
 module Make (Key : Shared_intf.Key_intf)
+            (GameKey : Shared_intf.GameKey_intf)
             (KeyPair : Shared_intf.KeyPair_intf
-             with type key = Key.t)
+             with type key = Key.t
+             with type gamekey = GameKey.t)
             (Graph : Shared_intf.Graph_impl_intf
              with type kpset = KeyPair.Set.t)
             (Display : Shared_intf.Display_intf
@@ -58,102 +60,104 @@ module Make (Key : Shared_intf.Key_intf)
         let flip f b a =
           f a b
 
-        (* let fill_graph orig g dicts = *)
+        let fill_graph orig g dicts =
 
-        (*   (\* Key of action from dicts *\) *)
-        (*   let k_of_a str = *)
-        (*     match KeyPair.BidirDict.keypair_of_key dicts str with *)
-        (*     | None -> assert false *)
-        (*     | Some v -> v *)
-        (*   in *)
+          (* KeyPair of str from dicts *)
+          let kp_of_str str =
+            match GameKey.of_string_err str with
+            | Error _ -> assert false
+            | Ok gk -> match KeyPair.BidirDict.keypair_of_gamekey dicts gk with
+                       | None -> assert false
+                       | Some kp -> kp
+          in
 
-        (*   (\* Key set of action list *\) *)
-        (*   let ks_of_al l = *)
-        (*     ListLabels.map ~f:k_of_a l *)
-        (*     |> KeyPair.Set.of_list *)
-        (*   in *)
+          (* KeyPair Set of str-list *)
+          let kpset_of_strll l =
+            ListLabels.map ~f:kp_of_str l
+            |> KeyPair.Set.of_list
+          in
 
-        (*   (\* Vertex of graph or creation *\) *)
-        (*   let find_vertex_or_create g kset_l = *)
-        (*     let is_vertex v = *)
-        (*       let kset_l' = *)
-        (*         Graph.V.label v *)
-        (*         |> Graph.Vlabel.get_cost *)
-        (*       in *)
-        (*       List.length kset_l = List.length kset_l' *)
-        (*       && ListLabels.for_all2 *)
-        (*            ~f:(fun a b -> *)
-        (*              KeyPair.Set.compare a b = 0 *)
-        (*            ) kset_l kset_l' *)
-        (*     in *)
-        (*     match Graph.find_vertex is_vertex g with *)
-        (*     | None -> Graph.Vlabel.create_step kset_l *)
-        (*               |> Graph.V.create *)
-        (*     | Some v -> v *)
-        (*   in *)
+          (* Vertex of graph or creation *)
+          let find_vertex_or_create g kset_l =
+            let is_vertex v =
+              let kset_l' =
+                Graph.V.label v
+                |> Graph.Vlabel.get_cost
+              in
+              List.length kset_l = List.length kset_l'
+              && ListLabels.for_all2
+                   ~f:(fun a b ->
+                     KeyPair.Set.compare a b = 0
+                   ) kset_l kset_l'
+            in
+            match Graph.find_vertex is_vertex g with
+            | None -> Graph.Vlabel.create_step kset_l
+                      |> Graph.V.create
+            | Some v -> v
+          in
 
-        (*   (\* Vertex list of action list list + name *\) *)
-        (*   let vert_of_all_name g ll name = *)
-        (*     assert (List.length ll > 0); *)
-        (*     let rec aux (kset_l, verts) = function *)
-        (*       | hd::[] -> Graph.Vlabel.create_spell (hd::kset_l) name *)
-        (*                   |> Graph.V.create *)
-        (*                   |> flip List.cons verts *)
-        (*       | hd::tl -> let kset_l = hd::kset_l in *)
-        (*                   let v = find_vertex_or_create g kset_l in *)
-        (*                   aux (kset_l, v::verts) tl *)
-        (*       | [] -> assert false *)
-        (*     in *)
-        (*     ListLabels.map ~f:ks_of_al ll *)
-        (*     |> aux ([], []) *)
-        (*     |> List.rev *)
-        (*   in *)
+          (* Vertex list of str-list-list + name *)
+          let vertices_of_strll_name g strll name =
+            assert (List.length strll > 0);
+            let rec aux (kset_l, verts) = function
+              | hd::[] -> Graph.Vlabel.create_spell (hd::kset_l) name
+                          |> Graph.V.create
+                          |> flip List.cons verts
+              | hd::tl -> let kset_l = hd::kset_l in
+                          let v = find_vertex_or_create g kset_l in
+                          aux (kset_l, v::verts) tl
+              | [] -> assert false
+            in
+            ListLabels.map ~f:kpset_of_strll strll
+            |> aux ([], [])
+            |> List.rev
+          in
 
-        (*   (\* New edge list of vertex list *\) *)
-        (*   let edges_of_vertices g vl = *)
-        (*     assert (List.length vl > 1); *)
-        (*     let rec aux acc = function *)
-        (*       | src::dst::tl when Graph.mem_edge g src dst -> *)
-        (*          aux acc (dst::tl) *)
-        (*       | src::dst::tl -> *)
-        (*          let kset = Graph.V.label dst |> Graph.Vlabel.get_cost |> List.hd in *)
-        (*          let e = Graph.E.create src kset dst in *)
-        (*          aux (e::acc) (dst::tl) *)
-        (*       | [] -> assert false *)
-        (*       | [_] -> acc *)
-        (*     in *)
-        (*     aux [] vl *)
-        (*   in *)
+          (* New edge list of vertex list *)
+          let edges_of_vertices g vl =
+            assert (List.length vl > 1);
+            let rec aux acc = function
+              | src::dst::tl when Graph.mem_edge g src dst ->
+                 aux acc (dst::tl)
+              | src::dst::tl ->
+                 let kset = Graph.V.label dst |> Graph.Vlabel.get_cost |> List.hd in
+                 let e = Graph.E.create src kset dst in
+                 aux (e::acc) (dst::tl)
+              | [] -> assert false
+              | [_] -> acc
+            in
+            aux [] vl
+          in
 
-        (*   (\* graph of graph + combo *\) *)
-        (*   let add_combo kll name g = *)
-        (*     vert_of_all_name g kll name *)
-        (*     |> List.cons orig *)
-        (*     |> edges_of_vertices g *)
-        (*     |> ListLabels.fold_left ~f:Graph.add_edge_e ~init:g *)
-        (*   in *)
+          (* graph of graph + stringified-combo *)
+          let add_combo strll name g =
+            vertices_of_strll_name g strll name
+            |> List.cons orig
+            |> edges_of_vertices g
+            |> ListLabels.fold_left ~f:Graph.add_edge_e ~init:g
+          in
 
-        (*   (\* graph of graph + combos *\) *)
-        (*   let add_combos combos g = *)
-        (*     ListLabels.fold_left *)
-        (*       ~f:(fun g (kll, name) -> *)
-        (*         add_combo kll name g) ~init:g combos *)
-        (*   in *)
-        (*   (\* ; ("[BK]", "s") 4 *\) *)
-        (*   (\* ; ("[BP]", "d") 2 *\) *)
-        (*   (\* ; ("[FK]", "z") 3 *\) *)
-        (*   (\* ; ("[FP]", "x") 1 *\) *)
-        (*   let moves = *)
-        (*     [ *)
-        (*       ([["Left"; "[BP]"]; ["[BK]"]], "Horror Show") *)
-        (*     ; ([["Right"; "[BP]"]; ["[BP]"]], "Outworld Bash") *)
-        (*     ; ([["Left"; "[FK]"]; ["[FK]"]], "Tarkatan Blows") *)
-        (*     ; ([["Left"; "[FK]"]; ["[FP]"]; ["Right"; "[FP]"]], "Open Wound") *)
-        (*     ; ([["Left"; "[FK]"]; ["[BP]"]; ["[BP]"]], "Easy Kill") *)
-        (*     ; ([["Right"; "[BK]"]; ["[BK]"]], "Doom Kicks") *)
-        (*     ] *)
-        (*   in *)
-        (*   add_combos moves g *)
+          (* graph of graph + stringified-comboS *)
+          let add_combos combos g =
+            ListLabels.fold_left
+              ~f:(fun g (strll, name) ->
+                add_combo strll name g) ~init:g combos
+          in
+          (* ; ("[BK]", "s") 4 *)
+          (* ; ("[BP]", "d") 2 *)
+          (* ; ("[FK]", "z") 3 *)
+          (* ; ("[FP]", "x") 1 *)
+          let moves =
+            [
+              ([["Right"; "[BP]"]; ["[BK]"]], "Horror Show")
+            ; ([["Right"; "[BP]"]; ["[BP]"]], "Outworld Bash")
+            ; ([["Left"; "[FK]"]; ["[FK]"]], "Tarkatan Blows")
+            ; ([["Left"; "[FK]"]; ["[FP]"]; ["Right"; "[FP]"]], "Open Wound")
+            ; ([["Left"; "[FK]"]; ["[BP]"]; ["[BP]"]], "Easy Kill")
+            ; ([["Right"; "[BK]"]; ["[BK]"]], "Doom Kicks")
+            ]
+          in
+          add_combos moves g
 
       end
 
@@ -191,7 +195,7 @@ module Make (Key : Shared_intf.Key_intf)
       Printf.eprintf "\t          if first key: link src with origin\n%!";
       Printf.eprintf "\t          else: link src previous Step\n%!";
 
-      (* let g = Debug.fill_graph orig g dicts in *)
+      let g = Debug.fill_graph orig g dicts in
       Printf.eprintf "\t    declare all vertices with Display.declare_vertex()\n%!";
       Graph.iter_vertex (fun v ->
           Display.declare_vertex v;
