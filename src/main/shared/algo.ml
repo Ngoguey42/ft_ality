@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/15 14:10:11 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/16 09:04:21 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -162,10 +162,12 @@ module Make (Key : Shared_intf.Key_intf)
       end
 
     let keys_of_channel_err chan =
-      Printf.eprintf "\t  read bindings from file\n%!";
-      Printf.eprintf "\t    build a (Key.t list) to return to Display\n%!";
-      Printf.eprintf "\t    build both dictionaries ((string * Key.t) Ftmap.t) ((Key.t * string) Ftmap.t) for future use\n%!";
-      Printf.eprintf "\t    foreach shortcuts: call Key.of_string()\n%!";
+      Ftlog.lvl 6;
+      Ftlog.outnl "read bindings from file";
+      Ftlog.lvl 8;
+      Ftlog.outnl "build a (Key.t list) to return to Display";
+      Ftlog.outnl "build both dictionaries ((string * Key.t) Ftmap.t) ((Key.t * string) Ftmap.t) for future use";
+      Ftlog.outnl "foreach shortcuts: call Key.of_string()";
       let rec aux dicts = function
         | [] ->
            Ok dicts
@@ -180,29 +182,36 @@ module Make (Key : Shared_intf.Key_intf)
 
     let of_channel_and_keys_err chan dicts =
       let g = Graph.empty in
-      Printf.eprintf "\t  read fsa from file and build graph\n%!";
-      Printf.eprintf "\t    add an origin vertex to graph\n%!";
+      Ftlog.lvl 6;
+      Ftlog.outnl "read fsa from file and build graph";
+      Ftlog.lvl 8;
+      Ftlog.outnl "add an origin vertex to graph";
       let orig = Graph.V.create (Graph.Vlabel.create_step []) in
       let g = Graph.add_vertex g orig in
 
-      Printf.eprintf "\t    foreach combos:\n%!";
-      Printf.eprintf "\t      foreach simultaneous presses required by combo\n%!";
-      Printf.eprintf "\t        insert a vertex (if missing)\n%!";
-      Printf.eprintf "\t          if last key: tag vertex as Combo\n%!";
-      Printf.eprintf "\t          else: tag vertex as Step\n%!";
-      Printf.eprintf "\t        create an edge to this vertex\n%!";
-      Printf.eprintf "\t          label containing Keys (set of simultaneous keys to be pressed)\n%!";
-      Printf.eprintf "\t          if first key: link src with origin\n%!";
-      Printf.eprintf "\t          else: link src previous Step\n%!";
+      Ftlog.outnl "foreach combos:";
+      Ftlog.lvl 10;
+      Ftlog.outnl "foreach simultaneous presses required by combo";
+      Ftlog.lvl 12;
+      Ftlog.outnl "insert a vertex (if missing)";
+      Ftlog.lvl 14;
+      Ftlog.outnl "if last key: tag vertex as Combo";
+      Ftlog.outnl "else: tag vertex as Step";
+      Ftlog.lvl 12;
+      Ftlog.outnl "create an edge to this vertex";
+      Ftlog.lvl 14;
+      Ftlog.outnl "label containing Keys (set of simultaneous keys to be pressed)";
+      Ftlog.outnl "if first key: link src with origin";
+      Ftlog.outnl "else: link src previous Step";
 
       let g = Debug.fill_graph orig g dicts in
-      Printf.eprintf "\t    declare all vertices with Display.declare_vertex()\n%!";
+      Ftlog.lvl 8;
+      Ftlog.outnl "declare all vertices with Display.declare_vertex()";
       Graph.iter_vertex (fun v ->
           Display.declare_vertex v;
         ) g;
-      Printf.eprintf "\t    declare all edges with Display.declare_edge()\n%!";
+      Ftlog.outnl "declare all edges with Display.declare_edge()";
       Graph.iter_vertex (fun v ->
-          Printf.eprintf "\t    Vert:\n%!";
           Graph.iter_succ_e (fun e ->
               Display.declare_edge e
             ) g v
@@ -213,8 +222,10 @@ module Make (Key : Shared_intf.Key_intf)
     (* Exposed *)
 
     let create_err chan =
-      Printf.eprintf "\tAlgo.create()\n%!";
-      Printf.eprintf "\t  Read channel and init self data\n%!";
+      Ftlog.lvl 4;
+      Ftlog.outnl "Algo.create()";
+      Ftlog.lvl 6;
+      Ftlog.outnl "Read channel and init self data";
       match keys_of_channel_err chan with
       | Error msg ->
          Error msg
@@ -223,12 +234,14 @@ module Make (Key : Shared_intf.Key_intf)
          | Error msg ->
             Error msg
          | Ok dat ->
-            Printf.eprintf "\t  Return inner state saved in type t for later use\n%!";
+            Ftlog.lvl 6;
+            Ftlog.outnl "Return inner state saved in type t for later use";
             Ok dat
 
     let on_key_press_err ({g; state; orig} as dat) kset =
+      Ftlog.lvl 4;
       assert (Graph.mem_vertex g state);
-      Printf.eprintf "\tAlgo.on_key_press(%s)%!"
+      Ftlog.out "Algo.on_key_press(%s)"
       @@ KeyPair.Set.to_string kset;
 
       let state =
@@ -243,10 +256,10 @@ module Make (Key : Shared_intf.Key_intf)
           s::acc
         ) g state []
       |> String.concat "; "
-      |> Printf.eprintf " succ_e(%s)\n%!";
+      |> Printf.printf " succ_e(%s)%!\n";
       match Display.focus_vertex_err state with
       | Ok () ->
-         Printf.eprintf "\n%!";
+         Ftlog.outnl "";
          Ok {dat with state}
       | Error msg -> Error msg
 

@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/14 11:34:51 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/15 07:54:04 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/16 08:54:02 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -69,7 +69,7 @@ let find_map2i : 'a list -> 'b list -> f:(int -> 'a -> 'b -> 'c option)
   aux 0 l l'
 
 (* signature from core's Core_list *)
-let filteri : 'a t -> f:(int -> 'a -> bool) -> 'a t = fun l ~f ->
+let filteri : 'a list -> f:(int -> 'a -> bool) -> 'a list = fun l ~f ->
   let rec aux acc i = function
     | [] -> acc
     | hd::tl -> aux ((f i hd)::acc) (i + 1) tl

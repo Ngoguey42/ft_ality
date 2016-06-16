@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 16:34:22 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/15 10:51:13 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/16 08:57:11 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -41,7 +41,8 @@ let string_of_escape = function
 let default = Char 'c'
 
 let of_string_err str =
-  Printf.eprintf "\t\tKey.of_string((\"%s\"))\n%!" str;
+  Ftlog.lvl 16;
+  Ftlog.outnl "Key.of_string((\"%s\"))" str;
   code_of_string_err str
 
 let to_string = function

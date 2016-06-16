@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/15 10:58:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/15 14:00:06 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/16 06:57:11 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -42,7 +42,7 @@ module Make (Key : Shared_intf.Key_intf)
         let compare_key (_, k) (_, k') =
           Key.compare k k'
 
-        let compare = compare_gamekey
+        let compare = compare_key
       end
     include Impl
 

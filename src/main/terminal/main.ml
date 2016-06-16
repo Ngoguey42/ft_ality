@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/10 11:51:10 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/15 13:50:16 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/16 08:57:28 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -30,5 +30,6 @@ module rec K : Term_intf.Key_intf = Key
 let () =
   match D.run_err () with
   | Error msg ->
-     Printf.eprintf "%s Error: \"%s\"\n%!" Sys.argv.(0) msg
+     Ftlog.lvl 0;
+     Ftlog.outnl "%s Error: \"%s\"" Sys.argv.(0) msg
   | _ -> ()

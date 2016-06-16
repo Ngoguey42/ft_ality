@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/15 14:14:58 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/16 08:56:35 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -153,7 +153,7 @@ module Make (Key : Term_intf.Key_intf)
                         ; Unix.c_vtime = 0}
       in
       at_exit (fun _ -> Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH terminfo);
-      Printf.eprintf "  Init ncurses\n%!";
+      Ftlog.outnl "Init termcaps";
       Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH newterminfo;
       Ok ()
 
@@ -161,36 +161,42 @@ module Make (Key : Term_intf.Key_intf)
     (* Exposed *)
 
     let declare_keypair kp =
-      Printf.eprintf "\t\tDisplay.declare_keypair(%s)\n%!"
+      Ftlog.lvl 8;
+      Ftlog.outnl "Display.declare_keypair(%s)"
                      (KeyPair.to_string kp);
       ()
 
     let declare_vertex v =
-      Printf.eprintf "\t\tDisplay.declare_vertex(%s)\n%!"
+      Ftlog.lvl 8;
+      Ftlog.outnl "Display.declare_vertex(%s)"
                      (Graph.V.label v |> Graph.Vlabel.to_string);
       ()
 
     let declare_edge e =
-      Printf.eprintf "\t\tDisplay.declare_edge(src:%s label:%s dst:%s)\n%!"
+      Ftlog.lvl 8;
+      Ftlog.outnl "Display.declare_edge(src:%s label:%s dst:%s)"
                      (Graph.E.src e |> Graph.V.label |> Graph.Vlabel.to_string)
                      (Graph.E.label e |> Graph.Elabel.to_string)
                      (Graph.E.dst e |> Graph.V.label |> Graph.Vlabel.to_string);
       ()
 
     let focus_vertex_err v =
+      Ftlog.lvl 8;
       Graph.V.label v
       |> Graph.Vlabel.to_string
-      |> Printf.eprintf "\t\tDisplay.focus_vertex_err(%s)\n%!";
+      |> Ftlog.outnl "Display.focus_vertex_err(%s)";
       Ok ()
 
     let run_err () =
-      Printf.eprintf "Display.run_err()\n%!";
-      Printf.eprintf "  if stdin open, pass stdin\n%!";
-      Printf.eprintf "  elseif argv[1] can be open, pass file\n%!";
-      Printf.eprintf "  else, error print usage\n%!";
+      Ftlog.lvl 0;
+      Ftlog.outnl "Display.run_err()";
+      Ftlog.lvl 2;
+      Ftlog.outnl "if stdin open, pass stdin";
+      Ftlog.outnl "elseif argv[1] can be open, pass file";
+      Ftlog.outnl "else, error print usage";
 
-      Printf.eprintf "  if error in Algo.create_err, exit with message\n%!";
-      Printf.eprintf "  else continue\n%!";
+      Ftlog.outnl "if error in Algo.create_err, exit with message";
+      Ftlog.outnl "else continue";
       match Algo.create_err stdin with
       | Error msg -> Error msg
       | Ok dat -> match init_termcap () with
