@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/16 07:03:16 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/16 10:26:47 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/16 12:10:49 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -109,6 +109,5 @@ let () =
     Dom_html.Event.domContentLoaded
     (Dom_html.handler on_domContentLoaded)
     Js._false
-  |> ignore
-  in
+  |> ignore;
   ()

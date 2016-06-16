@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/16 12:04:15 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/16 12:09:31 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -92,7 +92,7 @@ module Make (Key : Term_intf.Key_intf)
               Ftlog.lvl 4;
               Ftlog.outnl "OpenButton.ask_filepath_err()";
               Ftlog.lvl 6;
-              match open_button##files |> Js.Optdef.to_option with
+              match open_button##.files |> Js.Optdef.to_option with
               | None -> Error "Undefined files";
               | Some files ->
                  (* let _ = files##item  in *)

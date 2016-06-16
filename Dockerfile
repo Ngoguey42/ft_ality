@@ -6,7 +6,7 @@ RUN sudo apt-get install ack-grep tree rlwrap -y
 RUN opam switch 4.03.0
 RUN eval `opam config env`
 
-RUN opam install -y js_of_ocaml
+RUN opam install -y ppx_tools js_of_ocaml
 RUN opam install -y ocamlgraph curses
 
 # RUN opam depext ocamlsdl.0.9.1

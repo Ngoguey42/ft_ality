@@ -52,7 +52,7 @@ define MKGEN_BODY
     'browser' : {
       'srcdirs' : [$(subst $(SPACE),$(COMMA)$(SPACE),$(SRCDIRS_BROWSER))],
       'objsuffixes' : {'mli': 'cmi', 'ml': 'cmo'},
-      'depcmd' : 'ocamlfind ocamldep -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o'
+      'depcmd' : 'ocamlfind ocamldep -package js_of_ocaml,js_of_ocaml.ppx'
     },
     'testavl' : {
       'srcdirs' : [$(subst $(SPACE),$(COMMA)$(SPACE),$(SRCDIRS_TESTAVL))],
@@ -113,7 +113,7 @@ else ifeq ($(BUILD_MODE),browser)
   CC_LD			= ./link_browser.sh
   CC_OCAMLC		= ocamlfind ocamlc
   LD_FLAGS		= -linkpkg
-  BASE_FLAGS	+= -package js_of_ocaml,js_of_ocaml.syntax -syntax camlp4o
+  BASE_FLAGS	+= -package js_of_ocaml,js_of_ocaml.ppx
 
   SRCSBIN		= $(MKGEN_SRCSBIN_BROWSER) #gen by mkgen
   INCLUDEDIRS	= $(addprefix $(OBJDIR)/,$(SRCDIRS_BROWSER))
