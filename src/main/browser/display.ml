@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/16 12:09:31 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/16 15:09:33 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -96,10 +96,40 @@ module Make (Key : Term_intf.Key_intf)
               | None -> Error "Undefined files";
               | Some files ->
                  (* let _ = files##item  in *)
-                 (* match (files##item 0) |> Js.Opt.to_option with *)
-                 (*              | None -> Error "Undefined files"; *)
-                 (*              | Some file -> *)
-                                  Ok "lol"
+                 match (files##item 0) |> Js.Opt.to_option with
+                 | None -> Error "Undefined file";
+                 | Some file ->
+                    file##.name |> Js.to_string
+                    |> Ftlog.outnl "Found file \"%s\"";
+                    let fr = new%js File.fileReader in
+                    fr##.onloadend := yes
+
+
+                    fr##readAsText file
+                    |> ignore;
+
+                    let file_any = fr##.result in
+                    match File.CoerceTo.string file_any |> Js.Opt.to_option with
+                    | None -> Error "Could not read file"
+                    | Some str ->
+                       let str = Js.to_string str in
+                       Printf.eprintf "Some '%s'\n%!" str;
+                       Sys_js.set_channel_filler stdin (fun () ->
+                                                   Printf.eprintf "callbacklol\n%!";
+                                                   str
+                                                 );
+                       let rec aux () =
+                         match input_line stdin with
+                         | exception _ ->
+                            Printf.eprintf "End\n%!"
+                         | str ->
+                            Printf.eprintf "en cours'%s'\n%!" str;
+                            aux ()
+                       in
+                       Printf.eprintf "try read\n%!";
+                       aux ();
+                       Printf.eprintf "\n%!";
+                       Ok "lol"
 
           end
       end
@@ -137,7 +167,7 @@ module Make (Key : Term_intf.Key_intf)
 
     let run_on_click_err ({de; test} as data) =
       Ftlog.lvl 2;
-      Ftlog.outnl "run_on_click_err()";
+      Ftlog.outnl "Display.run_on_click_err()";
       Ftlog.outnl "%d" test;
       match DOMElements.OpenButton.ask_filepath_err de with
       | Error err -> Error err
