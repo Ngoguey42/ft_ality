@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/16 07:03:16 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/16 08:59:24 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/16 09:25:13 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -85,6 +85,8 @@ let log s =
 
 
 let () =
+  (* Ftlog.disable (); *)
+  (* Printf.eprintf "Hello world\n%!"; *)
   Ftlog.lvl 0;
   Ftlog.outnl "Hello World browser";
   let cy = ref None in

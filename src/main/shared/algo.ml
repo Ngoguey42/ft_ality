@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/16 09:04:21 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/16 09:22:10 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -256,7 +256,7 @@ module Make (Key : Shared_intf.Key_intf)
           s::acc
         ) g state []
       |> String.concat "; "
-      |> Printf.printf " succ_e(%s)%!\n";
+      |> Ftlog.out_raw " succ_e(%s)%!\n";
       match Display.focus_vertex_err state with
       | Ok () ->
          Ftlog.outnl "";
