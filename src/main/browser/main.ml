@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/16 07:03:16 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/16 09:25:13 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/16 10:26:47 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -27,10 +27,10 @@ module rec K : Term_intf.Key_intf = Key
             with type kpset = KP.Set.t) = Algo.Make(K)(GK)(KP)(G)(D)
 
 
-let log s =
-  ignore(
-      Js.Unsafe.fun_call (Js.Unsafe.js_expr "console.log") [| Js.Unsafe.inject s |]
-    )
+(* let log s = *)
+(*   ignore( *)
+(*       Js.Unsafe.fun_call (Js.Unsafe.js_expr "console.log") [| Js.Unsafe.inject s |] *)
+(*     ) *)
 
 
 
@@ -83,36 +83,32 @@ let log s =
 (*   () *)
 (* let elt = *)
 
+  (* let cy = ref None in *)
+
+      (* cy := Some v; *)
+       (* Ftlog.outnl "ok" *)
+    (* end; *)
 
 let () =
   (* Ftlog.disable (); *)
-  (* Printf.eprintf "Hello world\n%!"; *)
   Ftlog.lvl 0;
-  Ftlog.outnl "Hello World browser";
-  let cy = ref None in
-
   let on_domContentLoaded _ =
-    Ftlog.outnl "hello";
-    begin match Dom_html.getElementById "cy" with
-    | exception _ ->
-       Ftlog.outnl "failed"
-    | v ->
-       cy := Some v;
-       Ftlog.outnl "ok"
-    end;
-    Js._true
+    Ftlog.outnl "on_domContentLoaded()";
+    match D.run_err () with
+    | Error msg ->
+       Dom_html.window##alert (
+           Printf.sprintf "Error: \"%s\"" msg
+           |> Js.string);
+       Js._false
+    | _ ->
+       Js._true
   in
-
-  let _ = Dom_html.addEventListener
-            Dom_html.document
-            Dom_html.Event.domContentLoaded
-            (Dom_html.handler on_domContentLoaded)
-            Js._false
+  Ftlog.outnl "Listen domContentLoaded for Display.run_err() phase";
+  Dom_html.addEventListener
+    Dom_html.document
+    Dom_html.Event.domContentLoaded
+    (Dom_html.handler on_domContentLoaded)
+    Js._false
+  |> ignore
   in
-  Ftlog.outnl "Tamere";
-
-
-  match D.run_err () with
-  | Error msg ->
-     Ftlog.outnl "%s Error: \"%s\"" Sys.argv.(0) msg
-  | _ -> ()
+  ()
