@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/16 09:22:10 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/18 11:38:10 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -17,14 +17,12 @@ module Make (Key : Shared_intf.Key_intf)
              with type gamekey = GameKey.t)
             (Graph : Shared_intf.Graph_impl_intf
              with type kpset = KeyPair.Set.t)
-            (Display : Shared_intf.Display_intf
-             with type keypair = KeyPair.t
-             with type vertex = Graph.V.t
-             with type edge = Graph.E.t)
        : (Shared_intf.Algo_intf
           with type key = Key.t
           with type keypair = KeyPair.t
-          with type kpset = KeyPair.Set.t) =
+          with type kpset = KeyPair.Set.t
+          with type vertex = Graph.V.t
+          with type edge = Graph.E.t) =
   struct
 
     type t = {
@@ -36,6 +34,8 @@ module Make (Key : Shared_intf.Key_intf)
     type key = Key.t
     type keypair = KeyPair.t
     type kpset = KeyPair.Set.t
+    type vertex = Graph.V.t
+    type edge = Graph.E.t
 
     (* Internal *)
 
@@ -206,16 +206,7 @@ module Make (Key : Shared_intf.Key_intf)
 
       let g = Debug.fill_graph orig g dicts in
       Ftlog.lvl 8;
-      Ftlog.outnl "declare all vertices with Display.declare_vertex()";
-      Graph.iter_vertex (fun v ->
-          Display.declare_vertex v;
-        ) g;
-      Ftlog.outnl "declare all edges with Display.declare_edge()";
-      Graph.iter_vertex (fun v ->
-          Graph.iter_succ_e (fun e ->
-              Display.declare_edge e
-            ) g v
-        ) g;
+      (* Ftlog.outnl "declare all vertices with Display.declare_vertex()"; *)
       Ok {g; state = orig; orig; dicts}
 
 
@@ -257,12 +248,21 @@ module Make (Key : Shared_intf.Key_intf)
         ) g state []
       |> String.concat "; "
       |> Ftlog.out_raw " succ_e(%s)%!\n";
-      match Display.focus_vertex_err state with
-      | Ok () ->
-         Ftlog.outnl "";
-         Ok {dat with state}
-      | Error msg -> Error msg
+      Ok {dat with state}
 
     let keypair_of_key {dicts} key =
       KeyPair.BidirDict.keypair_of_key dicts key
+
+    let fold_keypair _ _ acc =
+      acc
+
+    let fold_vertex f {g} acc =
+        Graph.fold_vertex f g acc
+
+    let fold_edge f {g} acc =
+      Graph.fold_vertex (fun v acc ->
+          Graph.fold_succ_e (fun e acc -> (* Shadowing acc *)
+              f e acc
+            ) g v acc
+        ) g acc
   end

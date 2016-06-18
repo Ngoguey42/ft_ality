@@ -85,7 +85,7 @@ MAKEFLAGS		+= --no-print-directory
 #	LIBSBIN		link; dependancies
 #	LIBSMAKE	separate compilation; makefiles to call
 
-BUILD_MODE ?= termbyte
+BUILD_MODE ?= browser
 
 ifeq ($(BUILD_MODE),termbyte)
   NAME			:= ft_ality

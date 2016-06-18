@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/15 10:58:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/16 06:57:11 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/18 11:36:11 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -50,12 +50,14 @@ module Make (Key : Shared_intf.Key_intf)
       struct
         include Avl.Make(Impl)
 
-        let to_string kpset =
+        let to_string ?(color=true) kpset =
           fold (fun kp acc ->
               (Impl.to_string kp)::acc
             ) kpset []
           |> String.concat "; "
-          |> Printf.sprintf "\027[33m<%s>\027[0m"
+          |> (fun str -> if color
+                         then Printf.sprintf "\027[33m<%s>\027[0m" str
+                         else Printf.sprintf "<%s>" str)
       end
 
     module BidirDict =

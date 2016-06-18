@@ -8,6 +8,6 @@ body {
  */
 #cy {
     height: 1000px;
-    background: red;
+    /* background: red; */
     /* display: block; */
 }

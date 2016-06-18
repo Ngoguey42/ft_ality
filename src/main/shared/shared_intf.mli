@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/15 14:00:24 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/18 11:35:12 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -60,7 +60,7 @@ module type KeyPair_intf =
       include Avl.S
               with type elt = t
 
-      val to_string : t -> string
+      val to_string : ?color:bool -> t -> string
     end
 
     module BidirDict : sig
@@ -89,7 +89,7 @@ module type Graph_impl_intf =
 
       val create_spell : kpset list -> string -> t
       val create_step : kpset list -> t
-      val to_string : t -> string
+      val to_string : ?color:bool -> t -> string
       val get_cost : t -> kpset list
     end
 
@@ -115,22 +115,28 @@ module type Algo_intf =
     type key
     type keypair
     type kpset
+    type vertex
+    type edge
 
     val create_err : in_channel -> (t, string) result
     val on_key_press_err : t -> kpset -> (t, string) result
     val keypair_of_key : t -> key -> keypair option
+
+    val fold_keypair : (keypair -> 'a -> 'a) -> t -> 'a -> 'a
+    val fold_vertex : (vertex -> 'a -> 'a) -> t -> 'a -> 'a
+    val fold_edge : (edge -> 'a -> 'a) -> t -> 'a -> 'a
   end
 
 (* Module Display (Specific to display) *)
 module type Display_intf =
   sig
-    type keypair
-    type vertex
-    type edge
+    (* type keypair *)
+    (* type vertex *)
+    (* type edge *)
 
-    val declare_keypair : keypair -> unit
-    val declare_vertex : vertex -> unit
-    val declare_edge : edge -> unit
-    val focus_vertex_err : vertex -> (unit, string) result
+    (* val declare_keypair : keypair -> unit *)
+    (* val declare_vertex : vertex -> unit *)
+    (* val declare_edge : edge -> unit *)
+    (* val focus_vertex_err : vertex -> (unit, string) result *)
     val run_err : unit -> (unit, string) result
   end
