@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/18 08:32:32 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/18 09:59:01 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -83,6 +83,13 @@ module Make (Key : Term_intf.Key_intf)
 
         let create_err () =
           Ftlog.lvl 8;
+          begin match Cy.of_eltid_err "cy" with
+          | Error msg ->
+             Printf.eprintf "%s\n%!" msg;
+          | Ok cy ->
+             Printf.eprintf "Ok (%d)\n%!"
+                            (cy##width)
+          end;
           match element_of_name_err "cy"
               , element_of_name_err "open_button" with
           | Ok cy, Ok open_button_raw ->
