@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/16 07:03:16 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/18 11:29:35 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/18 12:42:06 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -25,7 +25,8 @@ module rec K : Browser_intf.Key_intf = Key
             with type edge = G.E.t) = Algo.Make(K)(GK)(KP)(G)
    and C : (Browser_intf.Cy_intf
             with type vertex = G.V.t
-            with type edge = G.E.t) = Cy.Make(G)
+            with type edge = G.E.t
+            with type algo = A.t) = Cy.Make(G)(A)
    and D : (Shared_intf.Display_intf) = Display.Make(K)(KP)(G)(A)(C)
 
 

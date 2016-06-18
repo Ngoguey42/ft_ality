@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/18 11:37:48 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/18 12:41:40 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -23,7 +23,8 @@ module Make (Key : Browser_intf.Key_intf)
              with type edge = Graph.E.t)
             (Cy : Browser_intf.Cy_intf
              with type vertex = Graph.V.t
-             with type edge = Graph.E.t)
+             with type edge = Graph.E.t
+             with type algo = Algo.t)
        : Shared_intf.Display_intf =
   struct
     (* Internal *)
@@ -95,7 +96,7 @@ module Make (Key : Browser_intf.Key_intf)
 
     type t = {
         ob : Dom_html.inputElement Js.t
-      ; cy : Cy.t
+      ; cy : Cy.t option
       ; algodat : Algo.t option
       }
 
@@ -145,15 +146,14 @@ module Make (Key : Browser_intf.Key_intf)
         let init_err () =
           Ftlog.lvl 6;
           Ftlog.outnl "Run.init_err()";
-          match OpenButton.create_err ()
-              , Cy.of_eltid_err "cy" with
-          | Error msg, _ | _, Error msg ->
+          match OpenButton.create_err () with
+          | Error msg ->
              Error msg
-          | Ok ob, Ok cy ->
+          | Ok ob ->
              Ftlog.lvl 6;
              Ftlog.outnl "Adding listener to open_button clicks";
              let ob = OpenButton.add_click_listener ob Cl.on_click in
-             Ok {cy; ob; algodat = None}
+             Ok {cy = None; ob; algodat = None}
 
         let on_click_err ({ob} as data) =
           Ftlog.lvl 2;
@@ -174,10 +174,12 @@ module Make (Key : Browser_intf.Key_intf)
             );
           match Algo.create_err stdin with
           | Error msg -> Error msg
-          | Ok algodat -> let cy =
-                            Algo.fold_vertex Cy.new_vertex algodat cy
-                          in
-                          Ok {dat with algodat = Some algodat}
+          | Ok algodat -> match Cy.create_err algodat with
+                          | Error msg -> Error msg
+                          | Ok cy ->
+                          (*   Algo.fold_vertex Cy.new_vertex algodat cy *)
+                          (* in *)
+                          Ok {dat with algodat = Some algodat; cy = Some cy}
 
       end
 
