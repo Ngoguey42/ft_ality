@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/18 09:07:33 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/18 12:44:29 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/18 15:01:49 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -23,6 +23,8 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
           with type edge = Graph.E.t
           with type algo = Algo.t) =
   struct
+
+    let (~|) = Js.string
 
     (* module Kwarg = *)
     (*   struct *)
@@ -95,6 +97,70 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
 
     (*}); *)
 
+    module Conf =
+      struct
+        let order orig =
+          object%js (self)
+            val name = ~|"breadthfirst"
+            val fit = Js.bool true
+            val padding = 30
+            val avoidOverlap = Js.bool true
+            val directed = Js.bool true
+            (* val circle = Js.bool true *)
+            val spacingFactor = 0.5
+            (* val roots = *)
+            (*   object%js (self) *)
+            (*     val data = *)
+            (*       object%js (self) *)
+            (*         val id  = Graph.V.label orig *)
+            (*                   |> Graph.Vlabel.to_string ~color:false *)
+            (*                   |> Js.string *)
+            (*       end *)
+            (*   end *)
+            (* val maximalAdjustments = 50 *)
+          end
+
+        let nodes_css =
+          let obj =
+            object%js
+              val shape = ~|"octagon"
+              (* val width = ~|"mapData(65, 40, 80, 20, 60)" *)
+              (* val width = ~|"250" *)
+              (* val height = ~|"100" *)
+              val content = ~|"data(id)"
+              (* val text-valign = ~|"center", *)
+              (* val text-outline-width = 2, *)
+              (* val text-outline-color = ~|"data(faveColor)", *)
+              (* val background-color = ~|"data(faveColor)", *)
+              val color = ~|"#fff"
+            end
+          in
+          Js.Unsafe.set obj ~|"text-valign" ~|"center";
+          (* Js.Unsafe.set obj ~|"font-size" ~|"120px"; *)
+          Js.Unsafe.set obj ~|"text-wrap" ~|"wrap";
+          (* Js.Unsafe.set obj ~|"text-max-width" ~|"125"; *)
+          Js.Unsafe.set obj ~|"text-outline-width" 2;
+          Js.Unsafe.set obj ~|"text-outline-color" ~|"#000";
+          Js.Unsafe.set obj ~|"background-color" ~|"#F5A45D";
+          obj
+
+        (* cytoscape.stylesheet().selector('node').css({}) *)
+        let style cy =
+
+          (* log "test"; *)
+          (* Ftlog.outnl "TEST TA MERE LA PUTE"; *)
+          (* log (cy##stylesheet); *)
+          (* log nodes_css; *)
+          let obj = ((cy##stylesheet)##selector (~|"node"))
+                      ##css nodes_css
+          in
+          log obj;
+          obj
+          (* |> ignore; *)
+          (* Ftlog.outnl "TEST TA MERE LA PUTE2" *)
+
+      end
+
     let create_err algodat =
       let jarr = new%js Js.array_empty in
       let insert_vertex v () =
@@ -114,23 +180,32 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
         |> ignore
       in
 
+      let str_of_v v =
+        Graph.V.label v
+        |> Graph.Vlabel.to_string ~color:false
+      in
+      let str_of_e e =
+        Graph.E.label e
+        |> Graph.Elabel.to_string
+      in
       let insert_edge e () =
+        (* Ftlog.lvl 0; *)
+        (* Ftlog.outnl "===>'%s' '%s' '%s'" *)
+        (*             (jstr_of_e e |> Js.to_string) *)
+        (*             (Graph.E.src e |> jstr_of_v |> Js.to_string) *)
+        (*             (Graph.E.dst e |> jstr_of_v |> Js.to_string) *)
+        (*             ; *)
         let obj : Js.Unsafe.any Js.t =
+          let src = Graph.E.src e |> str_of_v in
+          let dst = Graph.E.dst e |> str_of_v in
+          let edge = src ^ dst in
           object%js (self)
             val group = Js.string "edges"
             val data =
               object%js (self)
-                val id = Graph.E.label e
-                         |> Graph.Elabel.to_string
-                         |> Js.string
-                val source = Graph.E.src e
-                             |> Graph.V.label
-                             |> Graph.Vlabel.to_string ~color:false
-                             |> Js.string
-                val target = Graph.E.dst e
-                             |> Graph.V.label
-                             |> Graph.Vlabel.to_string ~color:false
-                             |> Js.string
+                val id = ~|edge
+                val source = ~|src
+                val target = ~|dst
               end
           end
           |> Js.Unsafe.coerce
@@ -145,17 +220,23 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
       | Error msg -> Error msg
       | Ok elt ->
          let c = Js.Unsafe.global##.cytoscape in
-         let kwarg =
-           object%js (self)
-             val container = elt
-             val elements = jarr
-           end
-         in
-         match new%js c kwarg with
-         | exception _ ->
-            Error "Could not construct `cytoscape` instance"
-         | inst ->
-            Ok inst
+         (* match new%js c (object%js end) with *)
+         (* | exception _ -> *)
+         (*    Error "Could not construct `cycape` instance" *)
+         (* | dummy -> *)
+            let kwarg =
+              object%js (self)
+                val container = elt
+                val elements = jarr
+                val layout = Conf.order (Algo.origin_vertex algodat)
+                val style = Conf.style c
+              end
+            in
+            match new%js c kwarg with
+            | exception _ ->
+               Error "Could not construct `cytoscape` instance"
+            | inst ->
+               Ok inst
 
     (* let new_vertex v cy = *)
     (*   let id = Graph.V.label v |> Graph.Vlabel.to_string ~color:false in *)

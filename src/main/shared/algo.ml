@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/18 11:38:10 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/18 13:48:03 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -265,4 +265,7 @@ module Make (Key : Shared_intf.Key_intf)
               f e acc
             ) g v acc
         ) g acc
+
+    let origin_vertex {orig} =
+      orig
   end

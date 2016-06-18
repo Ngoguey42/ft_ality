@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/14 13:59:02 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/18 11:37:04 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/18 14:43:05 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -37,10 +37,10 @@ module Make (KeyPair : Shared_intf.KeyPair_intf)
           in
           ListLabels.fold_left
             ~f:(fun acc kset -> (KeyPair.Set.to_string ~color kset)::acc) ~init:[] cost
-          |> String.concat "; "
+          |> String.concat "\n"
           |> (fun str -> if color
                          then Printf.sprintf "\027[35m%s\027[0m[ %s ]" t str
-                         else Printf.sprintf "%s[ %s ]" t str)
+                         else Printf.sprintf "%s\n%s" t str)
 
         let get_cost {cost} =
           cost

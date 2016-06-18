@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/18 11:35:12 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/18 13:45:47 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -122,6 +122,7 @@ module type Algo_intf =
     val on_key_press_err : t -> kpset -> (t, string) result
     val keypair_of_key : t -> key -> keypair option
 
+    val origin_vertex : t -> vertex
     val fold_keypair : (keypair -> 'a -> 'a) -> t -> 'a -> 'a
     val fold_vertex : (vertex -> 'a -> 'a) -> t -> 'a -> 'a
     val fold_edge : (edge -> 'a -> 'a) -> t -> 'a -> 'a
