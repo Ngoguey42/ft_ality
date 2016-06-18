@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/16 15:09:33 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/18 08:32:32 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -33,15 +33,31 @@ module Make (Key : Term_intf.Key_intf)
 
     module Error =
       struct
-        let missing_data () =
-          Dom_html.window##alert (Js.string "Error: Display not initialized");
-          Js._false
+        module Lwt =
+          struct
+            let missing_data () =
+              Dom_html.window##alert (Js.string "Error: Display not initialized");
+              Lwt.fail_with "Error: Display not initialized"
 
-        let msg msg =
-          Dom_html.window##alert (
-              Printf.sprintf "Error: \"%s\"" msg
-              |> Js.string);
-          Js._false
+            let msg msg =
+              Dom_html.window##alert (
+                  Printf.sprintf "Error: \"%s\"" msg
+                  |> Js.string);
+              Lwt.fail_with msg
+          end
+
+        module Js =
+          struct
+            let missing_data () =
+              Dom_html.window##alert (Js.string "Error: Display not initialized");
+              Js._false
+
+            let msg msg =
+              Dom_html.window##alert (
+                  Printf.sprintf "Error: \"%s\"" msg
+                  |> Js.string);
+              Js._false
+          end
 
       end
 
@@ -66,6 +82,7 @@ module Make (Key : Term_intf.Key_intf)
         (* Exposed *)
 
         let create_err () =
+          Ftlog.lvl 8;
           match element_of_name_err "cy"
               , element_of_name_err "open_button" with
           | Ok cy, Ok open_button_raw ->
@@ -88,55 +105,56 @@ module Make (Key : Term_intf.Key_intf)
               |> ignore;
               de
 
-            let ask_filepath_err ({open_button} as de) =
+            let ask_file_err ({open_button} as de) =
               Ftlog.lvl 4;
-              Ftlog.outnl "OpenButton.ask_filepath_err()";
+              Ftlog.outnl "OpenButton.ask_file_err()";
               Ftlog.lvl 6;
               match open_button##.files |> Js.Optdef.to_option with
               | None -> Error "Undefined files";
               | Some files ->
-                 (* let _ = files##item  in *)
                  match (files##item 0) |> Js.Opt.to_option with
                  | None -> Error "Undefined file";
                  | Some file ->
-                    file##.name |> Js.to_string
-                    |> Ftlog.outnl "Found file \"%s\"";
-                    let fr = new%js File.fileReader in
-                    fr##.onloadend := yes
+                    (* val readAsText : #blob Js.t -> Js.js_string Js.t Lwt.t *)
+                    Ok (File.readAsText file)
+                    (* file##.name |> Js.to_string *)
+                    (* |> Ftlog.outnl "Found file \"%s\""; *)
+                    (* let fr = new%js File.fileReader in *)
+                    (* fr##.onloadend := yes *)
 
 
-                    fr##readAsText file
-                    |> ignore;
+                    (* fr##readAsText file *)
+                    (* |> ignore; *)
 
-                    let file_any = fr##.result in
-                    match File.CoerceTo.string file_any |> Js.Opt.to_option with
-                    | None -> Error "Could not read file"
-                    | Some str ->
-                       let str = Js.to_string str in
-                       Printf.eprintf "Some '%s'\n%!" str;
-                       Sys_js.set_channel_filler stdin (fun () ->
-                                                   Printf.eprintf "callbacklol\n%!";
-                                                   str
-                                                 );
-                       let rec aux () =
-                         match input_line stdin with
-                         | exception _ ->
-                            Printf.eprintf "End\n%!"
-                         | str ->
-                            Printf.eprintf "en cours'%s'\n%!" str;
-                            aux ()
-                       in
-                       Printf.eprintf "try read\n%!";
-                       aux ();
-                       Printf.eprintf "\n%!";
-                       Ok "lol"
+                    (* let file_any = fr##.result in *)
+                    (* match File.CoerceTo.string file_any |> Js.Opt.to_option with *)
+                    (* | None -> Error "Could not read file" *)
+                    (* | Some str -> *)
+                    (*    let str = Js.to_string str in *)
+                    (*    Printf.eprintf "Some '%s'\n%!" str; *)
+                       (* Sys_js.set_channel_filler stdin (fun () -> *)
+                       (*                             Printf.eprintf "callbacklol\n%!"; *)
+                       (*                             str *)
+                       (*                           ); *)
+                    (*    let rec aux () = *)
+                    (*      match input_line stdin with *)
+                    (*      | exception _ -> *)
+                    (*         Printf.eprintf "End\n%!" *)
+                    (*      | str -> *)
+                    (*         Printf.eprintf "en cours'%s'\n%!" str; *)
+                    (*         aux () *)
+                    (*    in *)
+                    (*    Printf.eprintf "try read\n%!"; *)
+                    (*    aux (); *)
+                    (*    Printf.eprintf "\n%!"; *)
+                       (* Ok () *)
 
           end
       end
 
     type t = {
         de : DOMElements.t
-      ; test : int
+      ; algodat : Algo.t option
       }
 
     module Input =
@@ -165,39 +183,112 @@ module Make (Key : Term_intf.Key_intf)
           aux algodat_init
       end
 
-    let run_on_click_err ({de; test} as data) =
-      Ftlog.lvl 2;
-      Ftlog.outnl "Display.run_on_click_err()";
-      Ftlog.outnl "%d" test;
-      match DOMElements.OpenButton.ask_filepath_err de with
-      | Error err -> Error err
-      | Ok filename -> Ok {data with test = test + 1}
+    module type Run_intf =
+      sig
+        val init_err : unit -> (t, string) result
+        val on_click_err : t -> (t, string) result
+        val on_file_loaded_err : Js.js_string Js.t -> t -> (t, string) result
+      end
 
-    (* Only bit of imperative style contained in this closure *)
-    module Closure =
+    module type Closure_intf =
+      sig
+        val init_err : unit -> (unit, string) result
+        val on_click : 'a -> bool Js.t
+        val on_file_loaded : Js.js_string Js.t -> unit Lwt.t
+      end
+
+    module Run (Cl : Closure_intf) : Run_intf =
       struct
+
+        let init_err () =
+          Ftlog.lvl 6;
+          Ftlog.outnl "Run.init_err()";
+          match DOMElements.create_err () with
+          | Error msg ->
+             Error msg
+          | Ok de ->
+             Ftlog.lvl 6;
+             Ftlog.outnl "Adding listener to open_button clicks";
+             let de = DOMElements.OpenButton.add_click_listener
+                        de Cl.on_click in
+             Ok {de; algodat = None}
+
+        let on_click_err ({de} as data) =
+          Ftlog.lvl 2;
+          Ftlog.outnl "Run.on_click_err()";
+          (* val readAsText : #blob Js.t -> Js.js_string Js.t Lwt.t *)
+          match DOMElements.OpenButton.ask_file_err de with
+          | Error err -> Error err
+          | Ok t -> let _ = Lwt.bind t Cl.on_file_loaded in
+                    Ftlog.outnl "Adding listener to on_file_loaded";
+                    Ok data
+
+        let on_file_loaded_err jstr dat =
+          Ftlog.lvl 2;
+          Ftlog.outnl "Run.on_file_loaded_err()";
+          let str = Js.to_string jstr in
+          let stdinfiller = Sys_js.set_channel_filler stdin in
+          stdinfiller (fun () ->
+              stdinfiller (fun () -> "");
+              Js.to_string jstr
+            );
+          match Algo.create_err stdin with
+          | Error msg -> Error msg
+          | Ok algodat -> Ok {dat with algodat = Some algodat}
+
+      end
+
+    module Closure (R : Run_intf) : Closure_intf =
+      struct
+        (* Only bit of imperative style contained in this closure *)
         let data_ref = ref None
 
-        let init data =
-          data_ref := Some data
+        let init_err () =
+          Ftlog.lvl 4;
+          Ftlog.outnl "Closure.init_err()";
+          match R.init_err () with
+          | Ok dat -> data_ref := Some dat;
+                      Ok ()
+          | Error msg -> Error msg
 
-        let dispatch_event f =
+        let dispatch_event_js f =
           match !data_ref with
-          | None -> Error.missing_data ()
+          | None ->
+             Error.Js.missing_data ()
           | Some data ->
              match f data with
-             | Error msg -> Error.msg msg
+             | Error msg -> Error.Js.msg msg
              | Ok data ->
                 data_ref := Some data;
                 Js._true
 
+        let dispatch_event_lwt f =
+          match !data_ref with
+          | None ->
+             Error.Lwt.missing_data ()
+          | Some data ->
+             match f data with
+             | Error msg ->
+                Error.Lwt.msg msg
+             | Ok data ->
+                data_ref := Some data;
+                Lwt.return_unit
+                (* Js._true *)
+
         let on_click _ =
           Ftlog.lvl 0;
-          Ftlog.outnl "Closure.on_click() callback";
-          dispatch_event run_on_click_err
+          Ftlog.outnl "Closure.on_click()";
+          dispatch_event_js R.on_click_err
+
+        let on_file_loaded jstr =
+          Ftlog.lvl 0;
+          Ftlog.outnl "Closure.on_file_loaded()";
+          dispatch_event_lwt (R.on_file_loaded_err jstr)
 
       end
 
+    module rec Cl : Closure_intf = Closure(R)
+       and R : Run_intf = Run(Cl)
 
     (* Exposed *)
 
@@ -231,19 +322,6 @@ module Make (Key : Term_intf.Key_intf)
     let run_err () =
       Ftlog.lvl 2;
       Ftlog.outnl "Display.run_err()";
-      Ftlog.lvl 4;
-      match DOMElements.create_err () with
-      | Error msg ->
-         Error msg
-      | Ok de ->
-         Ftlog.outnl "Adding listener to open_button clicks";
-         let de = DOMElements.OpenButton.add_click_listener de Closure.on_click in
-         Closure.init {de; test = 0};
-         Ok ()
-                      (* Error "test err" *)
-                      (* Ftlog.outnl "if error in Algo.create_err, exit with message"; *)
-                      (* Ftlog.outnl "else continue"; *)
-                      (* match Algo.create_err stdin with *)
-                      (* | Error msg -> Error msg *)
-                      (* | Ok dat -> Ok () *)
+      Cl.init_err ()
+
   end
