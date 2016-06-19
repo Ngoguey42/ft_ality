@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/18 09:07:33 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/19 13:13:42 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 15:10:26 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -193,13 +193,9 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
             |> ignore
           in
 
-          let str_of_v v =
-            Graph.V.label v
-            |> Graph.Vlabel.to_string ~color:false
-          in
           let str_of_e e =
             Graph.E.label e
-            |> Graph.Elabel.to_string
+            |> Graph.Elabel.to_string ~color:false
           in
           let insert_edge e () =
             let obj : Js.Unsafe.any Js.t =

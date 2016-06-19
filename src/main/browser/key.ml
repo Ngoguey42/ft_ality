@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 16:34:22 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/19 13:34:40 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 15:09:12 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -39,11 +39,6 @@ let to_string = function
 
 let compare a b =
   Pervasives.compare a b
-  (* match a, b with *)
-  (* | Identifier _ | Code _ -> -1 *)
-  (* | Code _ | Identifier _ -> 1 *)
-  (* | Code a | Code b -> a - b *)
-  (* |  *)
 
 let of_dom_event de =
   match de##.keyIdentifier |> Js.Optdef.to_option with

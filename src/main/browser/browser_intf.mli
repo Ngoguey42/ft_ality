@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/16 09:58:01 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/19 13:22:29 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 15:09:17 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -24,9 +24,6 @@ module type Cy_intf =
     type edge
     type algo
 
-    (* val of_eltid_err : string -> (t, string) result *)
-    (* val new_vertex : vertex -> t -> t *)
-           (* val new_edge : edge -> t -> t *)
     val create_err : algo -> (t, string) result
     val destroy : t -> unit
   end
