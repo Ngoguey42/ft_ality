@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/18 12:41:40 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 08:39:48 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -174,12 +174,10 @@ module Make (Key : Browser_intf.Key_intf)
             );
           match Algo.create_err stdin with
           | Error msg -> Error msg
-          | Ok algodat -> match Cy.create_err algodat with
-                          | Error msg -> Error msg
-                          | Ok cy ->
-                          (*   Algo.fold_vertex Cy.new_vertex algodat cy *)
-                          (* in *)
-                          Ok {dat with algodat = Some algodat; cy = Some cy}
+          | Ok algodat ->
+             match Cy.create_err algodat with
+             | Error msg -> Error msg
+             | Ok cy -> Ok {dat with algodat = Some algodat; cy = Some cy}
 
       end
 

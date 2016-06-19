@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/18 09:07:33 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/19 08:36:31 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 08:38:31 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -85,8 +85,8 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
       struct
         let of_eltid_err eltid =
           match Dom_html.getElementById eltid with
-          | exception _ ->
-             Error (Printf.sprintf "Could not retreive `%s` in DOM" eltid)
+          | exception Js.Error e ->
+             Error.to_string "Could not retreive `cy` in DOM" e
           | elt -> Ok elt
       end
 
