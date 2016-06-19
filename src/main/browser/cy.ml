@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/18 09:07:33 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/19 08:38:31 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 11:44:42 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -50,7 +50,9 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
       struct
         class type c =
           object
-            (* method width : int Js.meth *)
+            method width : int Js.meth
+            method destroy : unit Js.meth
+            method container : Dom_html.element Js.t Js.meth
             (* method add : Js.Unsafe.t Js.t -> unit Js.meth *)
           end
       end
@@ -223,4 +225,8 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
            val style = Field.style ()
          end
          |> Global.new_instance_err
+
+    let destroy cy =
+      cy##destroy
+
   end

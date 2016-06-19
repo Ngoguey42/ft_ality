@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/16 09:58:01 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/18 12:39:36 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 11:07:56 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -29,4 +29,5 @@ module type Cy_intf =
     (* val new_vertex : vertex -> t -> t *)
            (* val new_edge : edge -> t -> t *)
     val create_err : algo -> (t, string) result
+    val destroy : t -> unit
   end
