@@ -15,10 +15,10 @@ _build/src/graph/ftgraph.cmo : src/graph/ftgraph.ml _build/src/bt/avl.cmo _build
 _build/src/graph/ftgraph.cmx : src/graph/ftgraph.ml _build/src/bt/avl.cmx _build/src/bt/ftmap.cmx _build/src/graph/ftgraph.cmi _build/src/graph/ftgraph_intf.cmi | _build/src/graph/
 _build/src/graph/ftgraph_intf.cmi : src/graph/ftgraph_intf.mli | _build/src/graph/
 _build/src/main/browser/browser_intf.cmi : src/main/browser/browser_intf.mli _build/src/main/shared/shared_intf.cmi | _build/src/main/browser/
-_build/src/main/browser/cy.cmo : src/main/browser/cy.ml _build/src/ft/ftlog.cmo _build/src/main/browser/browser_intf.cmi _build/src/main/shared/shared_intf.cmi | _build/src/main/browser/
-_build/src/main/browser/cy.cmx : src/main/browser/cy.ml _build/src/ft/ftlog.cmx _build/src/main/browser/browser_intf.cmi _build/src/main/shared/shared_intf.cmi | _build/src/main/browser/
-_build/src/main/browser/display.cmo : src/main/browser/display.ml _build/src/ft/ftlog.cmo _build/src/main/browser/browser_intf.cmi _build/src/main/shared/shared_intf.cmi | _build/src/main/browser/
-_build/src/main/browser/display.cmx : src/main/browser/display.ml _build/src/ft/ftlog.cmx _build/src/main/browser/browser_intf.cmi _build/src/main/shared/shared_intf.cmi | _build/src/main/browser/
+_build/src/main/browser/cy.cmo : src/main/browser/cy.ml _build/src/main/browser/browser_intf.cmi _build/src/main/shared/shared_intf.cmi | _build/src/main/browser/
+_build/src/main/browser/cy.cmx : src/main/browser/cy.ml _build/src/main/browser/browser_intf.cmi _build/src/main/shared/shared_intf.cmi | _build/src/main/browser/
+_build/src/main/browser/display.cmo : src/main/browser/display.ml _build/src/ft/ftlog.cmo _build/src/ft/ftopt.cmo _build/src/main/browser/browser_intf.cmi _build/src/main/shared/shared_intf.cmi | _build/src/main/browser/
+_build/src/main/browser/display.cmx : src/main/browser/display.ml _build/src/ft/ftlog.cmx _build/src/ft/ftopt.cmx _build/src/main/browser/browser_intf.cmi _build/src/main/shared/shared_intf.cmi | _build/src/main/browser/
 _build/src/main/browser/key.cmi : src/main/browser/key.mli _build/src/main/browser/browser_intf.cmi | _build/src/main/browser/
 _build/src/main/browser/key.cmo : src/main/browser/key.ml _build/src/ft/ftlog.cmo _build/src/main/browser/key.cmi | _build/src/main/browser/
 _build/src/main/browser/key.cmx : src/main/browser/key.ml _build/src/ft/ftlog.cmx _build/src/main/browser/key.cmi | _build/src/main/browser/
