@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/19 08:39:48 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 09:48:47 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -43,20 +43,6 @@ module Make (Key : Browser_intf.Key_intf)
                   |> Js.string);
               Lwt.fail_with msg
           end
-
-        module Js =
-          struct
-            let missing_data () =
-              Dom_html.window##alert (Js.string "Error: Display not initialized");
-              Js._false
-
-            let msg msg =
-              Dom_html.window##alert (
-                  Printf.sprintf "Error: \"%s\"" msg
-                  |> Js.string);
-              Js._false
-          end
-
       end
 
     module OpenButton =
@@ -72,14 +58,9 @@ module Make (Key : Browser_intf.Key_intf)
              | None -> Error "Could not coerce `OpenButton` to input"
              | Some v -> Ok v
 
-        let add_click_listener open_button f =
-          Dom_html.addEventListener
-            open_button
-            Dom_html.Event.change
-            (Dom_html.handler f)
-            Js._false
-          |> ignore;
-          open_button
+        let add_changes_listener open_button f =
+          Lwt_js_events.changes open_button f
+          |> ignore
 
         let query_file_content_err open_button =
           Ftlog.lvl 4;
@@ -129,14 +110,14 @@ module Make (Key : Browser_intf.Key_intf)
     module type Run_intf =
       sig
         val init_err : unit -> (t, string) result
-        val on_click_err : t -> (t, string) result
+        val on_change_err : t -> (t, string) result
         val on_file_loaded_err : Js.js_string Js.t -> t -> (t, string) result
       end
 
     module type Closure_intf =
       sig
         val init_err : unit -> (unit, string) result
-        val on_click : 'a -> bool Js.t
+        val on_change : 'a -> 'b -> unit Lwt.t
         val on_file_loaded : Js.js_string Js.t -> unit Lwt.t
       end
 
@@ -151,13 +132,13 @@ module Make (Key : Browser_intf.Key_intf)
              Error msg
           | Ok ob ->
              Ftlog.lvl 6;
-             Ftlog.outnl "Adding listener to open_button clicks";
-             let ob = OpenButton.add_click_listener ob Cl.on_click in
+             Ftlog.outnl "Adding listener to open_button change";
+             OpenButton.add_changes_listener ob Cl.on_change;
              Ok {cy = None; ob; algodat = None}
 
-        let on_click_err ({ob} as data) =
+        let on_change_err ({ob} as data) =
           Ftlog.lvl 2;
-          Ftlog.outnl "Run.on_click_err()";
+          Ftlog.outnl "Run.on_change_err()";
           match OpenButton.query_file_content_err ob with
           | Error err -> Error err
           | Ok t -> let _ = Lwt.bind t Cl.on_file_loaded in
@@ -194,17 +175,6 @@ module Make (Key : Browser_intf.Key_intf)
                       Ok ()
           | Error msg -> Error msg
 
-        let dispatch_event_js f =
-          match !data_ref with
-          | None ->
-             Error.Js.missing_data ()
-          | Some data ->
-             match f data with
-             | Error msg -> Error.Js.msg msg
-             | Ok data ->
-                data_ref := Some data;
-                Js._true
-
         let dispatch_event_lwt f =
           match !data_ref with
           | None ->
@@ -217,10 +187,10 @@ module Make (Key : Browser_intf.Key_intf)
                 data_ref := Some data;
                 Lwt.return_unit
 
-        let on_click _ =
+        let on_change _ _ =
           Ftlog.lvl 0;
-          Ftlog.outnl "Closure.on_click()";
-          dispatch_event_js R.on_click_err
+          Ftlog.outnl "Closure.on_change()";
+          dispatch_event_lwt R.on_change_err
 
         let on_file_loaded jstr =
           Ftlog.lvl 0;
@@ -232,34 +202,8 @@ module Make (Key : Browser_intf.Key_intf)
     module rec Cl : Closure_intf = Closure(R)
        and R : Run_intf = Run(Cl)
 
+
     (* Exposed *)
-
-    (* let declare_keypair kp = *)
-    (*   Ftlog.lvl 8; *)
-    (*   Ftlog.outnl "Display.declare_keypair(%s)" *)
-    (*               (KeyPair.to_string kp); *)
-    (*   () *)
-
-    (* let declare_vertex v = *)
-    (*   Ftlog.lvl 8; *)
-    (*   Ftlog.outnl "Display.declare_vertex(%s)" *)
-    (*               (Graph.V.label v |> Graph.Vlabel.to_string); *)
-    (*   () *)
-
-    (* let declare_edge e = *)
-    (*   Ftlog.lvl 8; *)
-    (*   Ftlog.outnl "Display.declare_edge(src:%s label:%s dst:%s)" *)
-    (*               (Graph.E.src e |> Graph.V.label |> Graph.Vlabel.to_string) *)
-    (*               (Graph.E.label e |> Graph.Elabel.to_string) *)
-    (*               (Graph.E.dst e |> Graph.V.label |> Graph.Vlabel.to_string); *)
-    (*   () *)
-
-    (* let focus_vertex_err v = *)
-    (*   Ftlog.lvl 8; *)
-    (*   Graph.V.label v *)
-    (*   |> Graph.Vlabel.to_string *)
-    (*   |> Ftlog.outnl "Display.focus_vertex_err(%s)"; *)
-    (*   Ok () *)
 
     let run_err () =
       Ftlog.lvl 2;
