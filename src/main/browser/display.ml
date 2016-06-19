@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/19 12:04:53 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 12:46:17 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -82,7 +82,8 @@ module Make (Key : Browser_intf.Key_intf)
       ; cy : Cy.t option
 
       (* Need to be Lwt.cancel() *)
-      ; keys_listener : unit Lwt.t option
+      ; keysup_listener : unit Lwt.t option
+      ; keysdown_listener : unit Lwt.t option
       ; file_listener : unit Lwt.t option
 
       (* Fully functionnal *)
@@ -120,8 +121,10 @@ module Make (Key : Browser_intf.Key_intf)
         val on_dom_loaded_err : unit -> (t, string) result
         val on_change_err : t -> (t, string) result
         val on_file_loaded_err : Js.js_string Js.t -> t -> (t, string) result
-        val on_key_press_err : Dom_html.keyboardEvent Js.t -> t
-                               -> (t, string) result
+        val on_keyup_err : Dom_html.keyboardEvent Js.t -> t
+                                  -> (t, string) result
+        val on_keydown_err : Dom_html.keyboardEvent Js.t -> t
+                                    -> (t, string) result
       end
 
     module type Closure_intf =
@@ -129,8 +132,10 @@ module Make (Key : Browser_intf.Key_intf)
         val on_dom_loaded_err : unit -> (unit, string) result
         val on_change : Dom_html.event Js.t -> unit Lwt.t -> unit Lwt.t
         val on_file_loaded : Js.js_string Js.t -> unit Lwt.t
-        val on_key_press : Dom_html.keyboardEvent Js.t -> unit Lwt.t
-                           -> unit Lwt.t
+        val on_keyup : Dom_html.keyboardEvent Js.t -> unit Lwt.t
+                       -> unit Lwt.t
+        val on_keydown : Dom_html.keyboardEvent Js.t -> unit Lwt.t
+                         -> unit Lwt.t
       end
 
 
@@ -144,10 +149,13 @@ module Make (Key : Browser_intf.Key_intf)
                Ftlog.outnl "Destroying cy";
                Cy.destroy cy;
                {dat with cy = None}
-            | `Keys_listener_cancel, {keys_listener = Some kl} ->
-               Ftlog.outnl "Canceling keys_listener";
-               Lwt.cancel kl;
-               {dat with keys_listener = None}
+            | `Keys_listener_cancel, { keysup_listener = Some kul
+                                     ; keysdown_listener = Some kdl} ->
+               Ftlog.outnl "Canceling keys listener";
+               Lwt.cancel kul;
+               Lwt.cancel kdl;
+               {dat with keysup_listener = None
+                       ; keysdown_listener = None}
             | `File_listener_cancel, {file_listener = Some fl} ->
                Ftlog.outnl "Canceling file_listener";
                Lwt.cancel fl;
@@ -169,7 +177,8 @@ module Make (Key : Browser_intf.Key_intf)
                 ; changes_listener =
                     OpenButton.add_changes_listener ob Cl.on_change
                 ; cy = None
-                ; keys_listener = None
+                ; keysup_listener = None
+                ; keysdown_listener = None
                 ; file_listener = None
                 ; algodat = None}
 
@@ -184,10 +193,9 @@ module Make (Key : Browser_intf.Key_intf)
                     Ok {dat with file_listener = Some fl}
 
         let on_file_loaded_err jstr dat_dirty =
-          Ftlog.lvl 2;
-          Ftlog.outnl "Run.on_file_loaded_err()";
+          Ftlog.outnllvl 2 "Run.on_file_loaded_err()";
           Ftlog.lvl 3;
-          let ({keys_listener; cy} as dat) =
+          let ({cy} as dat) =
             cleanup [`Keys_listener_cancel; `Cy_destroy; `File_listener_cleanup]
                     dat_dirty
           in
@@ -203,16 +211,27 @@ module Make (Key : Browser_intf.Key_intf)
              | Error msg -> Error msg
              | Ok cy ->
                 Ftlog.outnllvl 3 "Adding listener to keypresses";
-                let kl = Lwt_js_events.keydowns
-                           Dom_html.document
-                           Cl.on_key_press
+                let kdl = Lwt_js_events.keydowns
+                            Dom_html.document
+                            Cl.on_keydown
+                in
+                let kul = Lwt_js_events.keyups
+                            Dom_html.document
+                            Cl.on_keyup
                 in
                 Ok {dat with algodat = Some algodat
                            ; cy = Some cy
-                           ; keys_listener = Some kl}
+                           ; keysup_listener = Some kul
+                           ; keysdown_listener = Some kdl}
 
-        let on_key_press_err ke dat_dirty =
-          Ftlog.outnllvl 2 "Run.on_key_press_err()";
+        let on_keyup_err ke dat_dirty =
+          Ftlog.outnllvl 2 "Run.on_keyup_err()";
+          Ftlog.lvl 3;
+          let ({cy} as dat) = cleanup [] dat_dirty in
+          Ok dat
+
+        let on_keydown_err ke dat_dirty =
+          Ftlog.outnllvl 2 "Run.on_keydown_err()";
           Ftlog.lvl 3;
           let ({cy} as dat) = cleanup [] dat_dirty in
           Ok dat
@@ -225,8 +244,7 @@ module Make (Key : Browser_intf.Key_intf)
         let data_ref = ref None
 
         let on_dom_loaded_err () =
-          Ftlog.lvl 4;
-          Ftlog.outnl "Closure.init_err()";
+          Ftlog.outnllvl 4 "Closure.init_err()";
           match R.on_dom_loaded_err () with
           | Ok dat -> data_ref := Some dat;
                       Ok ()
@@ -245,19 +263,20 @@ module Make (Key : Browser_intf.Key_intf)
                 Lwt.return_unit
 
         let on_change _ _ =
-          Ftlog.lvl 0;
-          Ftlog.outnl "Closure.on_change()";
+          Ftlog.outnllvl 0 "Closure.on_change()";
           dispatch_event_lwt R.on_change_err
 
         let on_file_loaded jstr =
-          Ftlog.lvl 0;
-          Ftlog.outnl "Closure.on_file_loaded()";
+          Ftlog.outnllvl 0 "Closure.on_file_loaded()";
           dispatch_event_lwt (R.on_file_loaded_err jstr)
 
-        let on_key_press ke _ =
-          Ftlog.lvl 0;
-          Ftlog.outnl "Closure.on_key_press()";
-          dispatch_event_lwt (R.on_key_press_err ke)
+        let on_keyup ke _ =
+          Ftlog.outnllvl 0 "Closure.on_keyup()";
+          dispatch_event_lwt (R.on_keyup_err ke)
+
+        let on_keydown ke _ =
+          Ftlog.outnllvl 0 "Closure.on_keydown()";
+          dispatch_event_lwt (R.on_keydown_err ke)
 
       end
 
