@@ -6,11 +6,11 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/08 11:23:29 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/15 09:28:28 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 13:12:39 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
-let v_counter = ref 0
+let v_counter = ref 1
 
 module Make_PersistentDigraphAbstractLabeled :
 Ftgraph_intf.Make_PersistentDigraphAbstractLabeled_intf =
@@ -37,6 +37,9 @@ Ftgraph_intf.Make_PersistentDigraphAbstractLabeled_intf =
           let tag = !v_counter in
           incr v_counter;
           {tag ; label}
+
+        let uid {tag} =
+          tag
       end
     type vertex = V.t
 

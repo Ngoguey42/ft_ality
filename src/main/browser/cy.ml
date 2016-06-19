@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/18 09:07:33 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/19 11:44:42 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 13:13:42 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -129,11 +129,12 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
             (* val text-outline-color = ~|"data(faveColor)", *)
             (* val background-color = ~|"data(faveColor)", *)
             val shape = ~|"octagon"
-            val content = ~|"data(id)"
+            val label = ~|"data(name)"
             val color = ~|"#fff"
           end
           (* (\* |> entry ~|"text-max-width" ~|"125"; *\) *)
 	        |> entry ~|"text-valign" ~|"center"
+          |> entry ~|"text-halign" ~|"top"
           |> entry ~|"text-wrap" ~|"wrap"
           |> entry ~|"text-outline-width" 2
           |> entry ~|"text-outline-color" ~|"#000"
@@ -145,7 +146,7 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
           |> (fun i -> i##selector ~|"node")
           |> (fun i -> i##css nodes_css)
 
-        let node id =
+        let node id name =
           object%js (self)
             (* val selected = ~&false *)
             (* val locked = ~&true (\* Do not lock, auto placement fails *\) *)
@@ -155,15 +156,17 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
             val data =
               object%js (self)
                 val id = id
+                val name = name
               end
           end
 
-        let edge id srcid dstid =
+        let edge id name srcid dstid =
           object%js (self)
             val group = ~| "edges"
             val data =
               object%js (self)
                 val id = id
+                val name = name
                 val source = srcid
                 val target = dstid
               end
@@ -178,12 +181,13 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
 
           let insert_vertex v () =
             let obj : Js.Unsafe.any Js.t =
-              let id =
+              let name =
                 Graph.V.label v
                 |> Graph.Vlabel.to_string ~color:false
                 |> Js.string
               in
-              Field.node id |> Js.Unsafe.coerce
+              let id = Graph.V.uid v in
+              Field.node id name |> Js.Unsafe.coerce
             in
             jarr##push obj
             |> ignore
@@ -199,10 +203,11 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
           in
           let insert_edge e () =
             let obj : Js.Unsafe.any Js.t =
-              let src = Graph.E.src e |> str_of_v in
-              let dst = Graph.E.dst e |> str_of_v in
-              let edge = src ^ dst in
-              Field.edge ~|edge ~|src ~|dst |> Js.Unsafe.coerce
+              let src = Graph.E.src e |> Graph.V.uid in
+              let dst = Graph.E.dst e |> Graph.V.uid in
+              let id = (src lsl 16) + dst in
+              let name = str_of_e e in
+              Field.edge id ~|name src dst |> Js.Unsafe.coerce
             in
             jarr##push obj
             |> ignore

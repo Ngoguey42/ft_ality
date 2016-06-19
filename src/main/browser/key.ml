@@ -6,39 +6,27 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 16:34:22 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/16 09:06:18 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 13:34:40 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
-type t = Escape of char list | Char of char
+type t = Identifier of string | Code of int
 
 (* Internal *)
 
 let code_of_string_err = function
-  | "left" -> Ok (Escape ['['; 'D'])
-  | "right" -> Ok (Escape ['['; 'C'])
-  | "down" -> Ok (Escape ['['; 'B'])
-  | "up" -> Ok (Escape ['['; 'A'])
-  | s when String.length s = 1 -> Ok (Char (String.get s 0))
+  | "left" -> Ok (Identifier "Left")
+  | "right" -> Ok (Identifier "Right")
+  | "down" -> Ok (Identifier "Down")
+  | "up" -> Ok (Identifier "Up")
+  | s when String.length s = 1 -> Ok (Code (String.get s 0
+                                            |> Char.uppercase_ascii
+                                            |> int_of_char))
   | s -> Error (Printf.sprintf "Unknown key \"%s\"" s)
-
-let string_of_char c =
-  Printf.sprintf "'%s'" (Char.escaped c)
-
-let string_of_escape = function
-  | ['['; 'D'] -> "left"
-  | ['['; 'C'] -> "right"
-  | ['['; 'B'] -> "down"
-  | ['['; 'A'] -> "up"
-  | l -> ListLabels.fold_right
-           ~f:(fun c acc -> string_of_char c::acc) l ~init:[]
-         |> String.concat "; "
-         |> Printf.sprintf "[\\e; %s]"
-
 
 (* Exposed *)
 
-let default = Char 'c'
+let default = Code 0
 
 let of_string_err str =
   Ftlog.lvl 8;
@@ -46,19 +34,23 @@ let of_string_err str =
   code_of_string_err str
 
 let to_string = function
-  | Char c -> string_of_char c
-  | Escape l -> string_of_escape l
+  | Identifier s -> s
+  | Code c -> char_of_int c |> String.make 1
 
 let compare a b =
-  match a, b with
-  | Escape _, Char _ -> -1
-  | Char _, Escape _ -> 1
-  | Char c, Char c' -> compare c c'
-  | Escape l, Escape l' -> compare l l'
+  Pervasives.compare a b
+  (* match a, b with *)
+  (* | Identifier _ | Code _ -> -1 *)
+  (* | Code _ | Identifier _ -> 1 *)
+  (* | Code a | Code b -> a - b *)
+  (* |  *)
 
-let of_char c =
-  Char c
-
-let of_sequence l =
-  assert (List.length l > 0);
-  Escape l
+let of_dom_event de =
+  match de##.keyIdentifier |> Js.Optdef.to_option with
+  | None -> Code de##.keyCode
+  | Some jki ->  let ki = Js.to_string jki in
+                 if String.length ki < 4
+                 then Identifier ki
+                 else match String.sub ki 0 2 with
+                      | "U+" -> Code de##.keyCode
+                      | _ -> Identifier ki

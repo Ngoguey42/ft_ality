@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/06 16:33:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/15 09:22:01 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 12:57:42 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -74,6 +74,10 @@ module type Vertex_intf =
     type label
     val create : label -> t
     val label : t -> label
+
+
+    (* Not Present in OcamlGraph *)
+    val uid : t -> int
   end
 
 

@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/19 12:46:17 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 13:40:32 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -225,13 +225,15 @@ module Make (Key : Browser_intf.Key_intf)
                            ; keysdown_listener = Some kdl}
 
         let on_keyup_err ke dat_dirty =
-          Ftlog.outnllvl 2 "Run.on_keyup_err()";
+          let k = Key.of_dom_event ke in
+          Ftlog.outnllvl 2 "Run.on_keyup_err(%s)" (Key.to_string k);
           Ftlog.lvl 3;
           let ({cy} as dat) = cleanup [] dat_dirty in
           Ok dat
 
         let on_keydown_err ke dat_dirty =
-          Ftlog.outnllvl 2 "Run.on_keydown_err()";
+          let k = Key.of_dom_event ke in
+          Ftlog.outnllvl 2 "Run.on_keydown_err(%s)" (Key.to_string k);
           Ftlog.lvl 3;
           let ({cy} as dat) = cleanup [] dat_dirty in
           Ok dat
@@ -248,7 +250,7 @@ module Make (Key : Browser_intf.Key_intf)
           match R.on_dom_loaded_err () with
           | Ok dat -> data_ref := Some dat;
                       Ok ()
-          | Error msg-> Error msg
+          | Error msg -> Error msg
 
         let dispatch_event_lwt f =
           match !data_ref with
