@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/18 13:45:47 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 14:52:08 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -99,7 +99,7 @@ module type Graph_impl_intf =
 
       val compare : t -> t -> int
       val default : t
-      val to_string : t -> string
+      val to_string : ?color:bool -> t -> string
     end
 
     (* Graph implementation *)

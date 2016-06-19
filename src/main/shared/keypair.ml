@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/15 10:58:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/18 14:45:23 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 14:53:15 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -50,7 +50,7 @@ module Make (Key : Shared_intf.Key_intf)
       struct
         include Avl.Make(Impl)
 
-        let to_string ?(color=true) kpset =
+        let to_string ?(color=false) kpset =
           fold (fun kp acc ->
               (Impl.to_string kp)::acc
             ) kpset []

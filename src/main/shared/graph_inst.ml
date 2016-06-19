@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/14 13:59:02 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/19 13:38:59 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 14:52:35 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -53,7 +53,8 @@ module Make (KeyPair : Shared_intf.KeyPair_intf)
 
         let default = KeyPair.Set.empty
 
-        let to_string = KeyPair.Set.to_string ~color:true
+        let to_string ?(color=false) v =
+          KeyPair.Set.to_string ~color v
 
         let compare = KeyPair.Set.compare
       end

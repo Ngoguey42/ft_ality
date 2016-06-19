@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/19 13:40:32 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 14:57:02 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -73,6 +73,52 @@ module Make (Key : Browser_intf.Key_intf)
              | Some file -> Ok (File.readAsText file)
       end
 
+    module Input =
+      struct
+
+        module KS = KeyPair.Set
+        type t = Empty | Set of { set : KS.t
+                                ; timeout : Js.date Js.t
+                                ; timeout_listener : unit Lwt.t}
+
+        let range_msf = 150.
+        let incrrange_msf = 125.
+
+        let new_time_forward prev incr_ms =
+          new%js Js.date_fromTimeValue (prev##valueOf +. incr_ms)
+
+        let add kp listener = function
+          | Empty ->
+             let timeout = new_time_forward (new%js Js.date_now) range_msf in
+             let timeout_listener =
+               Lwt.bind (Lwt_js.sleep (range_msf /. 1000.)) listener
+             in
+             Set { set = KS.add kp KS.empty
+                 ; timeout ; timeout_listener}
+          | Set {set} as v when KS.mem kp set -> v
+          | Set {set; timeout; timeout_listener} ->
+             Lwt.cancel timeout_listener;
+             let timeout_f = (new%js Js.date_now)##valueOf +. incrrange_msf in
+             timeout##setTime timeout_f |> ignore;
+             let timeout_listener =
+               Lwt.bind (Lwt_js.sleep (incrrange_msf /. 1000.)) listener
+             in
+             Set { set = KS.add kp set
+                 ; timeout
+                 ; timeout_listener}
+
+        let on_timeout algodat = function
+          | Empty ->
+             Ok algodat
+          | Set {set} ->
+             Algo.on_key_press_err algodat set
+
+        let destroy = function
+          | Empty -> ()
+          | Set {timeout_listener} -> Lwt.cancel timeout_listener
+
+      end
+
     type t = {
         (* Doesn't vary over time *)
         ob : Dom_html.inputElement Js.t
@@ -82,49 +128,26 @@ module Make (Key : Browser_intf.Key_intf)
       ; cy : Cy.t option
 
       (* Need to be Lwt.cancel() *)
-      ; keysup_listener : unit Lwt.t option
+      (* ; keysup_listener : unit Lwt.t option *)
       ; keysdown_listener : unit Lwt.t option
       ; file_listener : unit Lwt.t option
+      ; input : Input.t
 
       (* Fully functionnal *)
       ; algodat : Algo.t option
       }
 
-    module Input =
-      struct
-
-        module KS = KeyPair.Set
-        (* TODO: implement clear screan with \012 *)
-        type press = Exit | Empty | Set of KS.t
-
-        let range_msf = 150. /. 1000.
-        let incrrange_msf = 125. /. 1000.
-
-        let next dat =
-          Empty
-
-        (* Program main loop *)
-        let loop_err algodat_init =
-          let rec aux dat =
-            match next dat with
-            | Empty -> aux dat
-            | Exit -> Ok ()
-            | Set kset -> match Algo.on_key_press_err dat kset with
-                          | Ok dat' -> aux dat'
-                          | Error msg -> Error msg
-          in
-          aux algodat_init
-      end
 
     module type Run_intf =
       sig
         val on_dom_loaded_err : unit -> (t, string) result
         val on_change_err : t -> (t, string) result
         val on_file_loaded_err : Js.js_string Js.t -> t -> (t, string) result
-        val on_keyup_err : Dom_html.keyboardEvent Js.t -> t
-                                  -> (t, string) result
+        (* val on_keyup_err : Dom_html.keyboardEvent Js.t -> t *)
+                                  (* -> (t, string) result *)
         val on_keydown_err : Dom_html.keyboardEvent Js.t -> t
-                                    -> (t, string) result
+                             -> (t, string) result
+        val on_inputtimeout_err : t -> (t, string) result
       end
 
     module type Closure_intf =
@@ -132,10 +155,11 @@ module Make (Key : Browser_intf.Key_intf)
         val on_dom_loaded_err : unit -> (unit, string) result
         val on_change : Dom_html.event Js.t -> unit Lwt.t -> unit Lwt.t
         val on_file_loaded : Js.js_string Js.t -> unit Lwt.t
-        val on_keyup : Dom_html.keyboardEvent Js.t -> unit Lwt.t
-                       -> unit Lwt.t
+        (* val on_keyup : Dom_html.keyboardEvent Js.t -> unit Lwt.t *)
+                       (* -> unit Lwt.t *)
         val on_keydown : Dom_html.keyboardEvent Js.t -> unit Lwt.t
                          -> unit Lwt.t
+        val on_inputtimeout : unit -> unit Lwt.t
       end
 
 
@@ -149,13 +173,10 @@ module Make (Key : Browser_intf.Key_intf)
                Ftlog.outnl "Destroying cy";
                Cy.destroy cy;
                {dat with cy = None}
-            | `Keys_listener_cancel, { keysup_listener = Some kul
-                                     ; keysdown_listener = Some kdl} ->
+            | `Keys_listener_cancel, { keysdown_listener = Some kdl} ->
                Ftlog.outnl "Canceling keys listener";
-               Lwt.cancel kul;
                Lwt.cancel kdl;
-               {dat with keysup_listener = None
-                       ; keysdown_listener = None}
+               {dat with keysdown_listener = None}
             | `File_listener_cancel, {file_listener = Some fl} ->
                Ftlog.outnl "Canceling file_listener";
                Lwt.cancel fl;
@@ -177,9 +198,10 @@ module Make (Key : Browser_intf.Key_intf)
                 ; changes_listener =
                     OpenButton.add_changes_listener ob Cl.on_change
                 ; cy = None
-                ; keysup_listener = None
+                (* ; keysup_listener = None *)
                 ; keysdown_listener = None
                 ; file_listener = None
+                ; input = Input.Empty
                 ; algodat = None}
 
         let on_change_err dat_dirty =
@@ -215,28 +237,46 @@ module Make (Key : Browser_intf.Key_intf)
                             Dom_html.document
                             Cl.on_keydown
                 in
-                let kul = Lwt_js_events.keyups
-                            Dom_html.document
-                            Cl.on_keyup
-                in
+                (* TODO: investigate simultaneous presses *)
+                (* let kul = Lwt_js_events.keyupas *)
+                (*             Dom_html.document *)
+                (*             Cl.on_keyup *)
+                (* in *)
                 Ok {dat with algodat = Some algodat
                            ; cy = Some cy
-                           ; keysup_listener = Some kul
+                           (* ; keysup_listener = Some kul *)
                            ; keysdown_listener = Some kdl}
 
-        let on_keyup_err ke dat_dirty =
-          let k = Key.of_dom_event ke in
-          Ftlog.outnllvl 2 "Run.on_keyup_err(%s)" (Key.to_string k);
-          Ftlog.lvl 3;
-          let ({cy} as dat) = cleanup [] dat_dirty in
-          Ok dat
+        (* let on_keyup_err ke dat_dirty = *)
+        (*   let k = Key.of_dom_event ke in *)
+        (*   Ftlog.outnllvl 2 "Run.on_keyup_err(%s)" (Key.to_string k); *)
+        (*   Ftlog.lvl 3; *)
+        (*   let ({cy} as dat) = cleanup [] dat_dirty in *)
+        (*   Ok dat *)
 
-        let on_keydown_err ke dat_dirty =
-          let k = Key.of_dom_event ke in
-          Ftlog.outnllvl 2 "Run.on_keydown_err(%s)" (Key.to_string k);
-          Ftlog.lvl 3;
-          let ({cy} as dat) = cleanup [] dat_dirty in
-          Ok dat
+        let on_keydown_err ke ({algodat; input} as dat) =
+          match algodat with
+          | None -> Error "Undefined algodat"
+          | Some algodat ->
+             let k = Key.of_dom_event ke in
+             Ftlog.outnllvl 2 "Run.on_keydown_err(%s)" (Key.to_string k);
+             let kp = Ftopt.value_thunk (Algo.keypair_of_key algodat k)
+                                        ~f:(fun () -> KeyPair.of_key k)
+             in
+             let input = Input.add kp Cl.on_inputtimeout input in
+             (* Ftlog.lvl 3; *)
+             (* let ({cy} as dat) = cleanup [] dat_dirty in *)
+             Ok {dat with input}
+
+        let on_inputtimeout_err ({input; algodat} as dat) =
+          match algodat with
+          | None -> Error "Undefined algodat"
+          | Some algodat ->
+             Printf.eprintf "Run.on_inputtimeout_err()\n%!";
+             match Input.on_timeout algodat input with
+             | Error msg -> Error msg
+             | Ok algodat ->
+                Ok {dat with input = Input.Empty; algodat = Some algodat}
 
       end
 
@@ -272,13 +312,18 @@ module Make (Key : Browser_intf.Key_intf)
           Ftlog.outnllvl 0 "Closure.on_file_loaded()";
           dispatch_event_lwt (R.on_file_loaded_err jstr)
 
-        let on_keyup ke _ =
-          Ftlog.outnllvl 0 "Closure.on_keyup()";
-          dispatch_event_lwt (R.on_keyup_err ke)
+        (* let on_keyup ke _ = *)
+        (*   Ftlog.outnllvl 0 "Closure.on_keyup()"; *)
+        (*   dispatch_event_lwt (R.on_keyup_err ke) *)
 
         let on_keydown ke _ =
           Ftlog.outnllvl 0 "Closure.on_keydown()";
           dispatch_event_lwt (R.on_keydown_err ke)
+
+        let on_inputtimeout () =
+          Ftlog.outnllvl 0 "Closure.on_inputtimeout()";
+          dispatch_event_lwt R.on_inputtimeout_err
+
 
       end
 
