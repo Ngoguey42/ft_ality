@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/16 08:56:35 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/19 15:14:58 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -19,15 +19,12 @@ module Make (Key : Term_intf.Key_intf)
              with type key = Key.t
              with type keypair = KeyPair.t
              with type kpset = KeyPair.Set.t)
-       : (Shared_intf.Display_intf
-          with type keypair = KeyPair.t
-          with type vertex = Graph.V.t
-          with type edge = Graph.E.t) =
+       : (Shared_intf.Display_intf) =
   struct
 
-    type keypair = KeyPair.t
-    type vertex = Graph.V.t
-    type edge = Graph.E.t
+    (* type keypair = KeyPair.t *)
+    (* type vertex = Graph.V.t *)
+    (* type edge = Graph.E.t *)
 
 
     (* Internal *)
@@ -160,32 +157,32 @@ module Make (Key : Term_intf.Key_intf)
 
     (* Exposed *)
 
-    let declare_keypair kp =
-      Ftlog.lvl 8;
-      Ftlog.outnl "Display.declare_keypair(%s)"
-                     (KeyPair.to_string kp);
-      ()
+    (* let declare_keypair kp = *)
+    (*   Ftlog.lvl 8; *)
+    (*   Ftlog.outnl "Display.declare_keypair(%s)" *)
+    (*                  (KeyPair.to_string kp); *)
+    (*   () *)
 
-    let declare_vertex v =
-      Ftlog.lvl 8;
-      Ftlog.outnl "Display.declare_vertex(%s)"
-                     (Graph.V.label v |> Graph.Vlabel.to_string);
-      ()
+    (* let declare_vertex v = *)
+    (*   Ftlog.lvl 8; *)
+    (*   Ftlog.outnl "Display.declare_vertex(%s)" *)
+    (*                  (Graph.V.label v |> Graph.Vlabel.to_string); *)
+    (*   () *)
 
-    let declare_edge e =
-      Ftlog.lvl 8;
-      Ftlog.outnl "Display.declare_edge(src:%s label:%s dst:%s)"
-                     (Graph.E.src e |> Graph.V.label |> Graph.Vlabel.to_string)
-                     (Graph.E.label e |> Graph.Elabel.to_string)
-                     (Graph.E.dst e |> Graph.V.label |> Graph.Vlabel.to_string);
-      ()
+    (* let declare_edge e = *)
+    (*   Ftlog.lvl 8; *)
+    (*   Ftlog.outnl "Display.declare_edge(src:%s label:%s dst:%s)" *)
+    (*                  (Graph.E.src e |> Graph.V.label |> Graph.Vlabel.to_string) *)
+    (*                  (Graph.E.label e |> Graph.Elabel.to_string) *)
+    (*                  (Graph.E.dst e |> Graph.V.label |> Graph.Vlabel.to_string); *)
+    (*   () *)
 
-    let focus_vertex_err v =
-      Ftlog.lvl 8;
-      Graph.V.label v
-      |> Graph.Vlabel.to_string
-      |> Ftlog.outnl "Display.focus_vertex_err(%s)";
-      Ok ()
+    (* let focus_vertex_err v = *)
+    (*   Ftlog.lvl 8; *)
+    (*   Graph.V.label v *)
+    (*   |> Graph.Vlabel.to_string *)
+    (*   |> Ftlog.outnl "Display.focus_vertex_err(%s)"; *)
+    (*   Ok () *)
 
     let run_err () =
       Ftlog.lvl 0;
