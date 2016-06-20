@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/20 07:39:07 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/20 07:44:14 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/20 09:25:40 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -33,3 +33,8 @@ let try_4expr p1 p2 p3 p4 =
         match p3 v1 v2 with
         | Error msg -> Error msg
         | Ok v3 -> p4 v1 v2 v3
+
+let ignore : ('a, 'b) result -> default:'a -> 'a = fun res ~default ->
+  match res with
+  | Error _ -> default
+  | Ok v -> v

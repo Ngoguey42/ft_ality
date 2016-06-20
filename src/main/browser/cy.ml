@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/18 09:07:33 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/20 08:56:54 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/20 09:21:42 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -326,7 +326,7 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
     let destroy {cy} =
       cy##destroy
 
-    let update_focus_err {cy; focus} algodat =
+    let update_focus_err algodat {cy; focus} =
       focus##removeClass ~|"focus" |> ignore;
       Fterr.try_2expr
         (JsInstance.focus_node_of_algodat_err cy algodat)

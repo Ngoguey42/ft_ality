@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/20 08:46:54 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/20 09:26:51 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -117,14 +117,14 @@ module Make (Key : Browser_intf.Key_intf)
                  ; timeout
                  ; timeout_listener}
 
-        let on_timeout algodat = function
-          | Empty ->
-             (* Timeout reached with an empty `Set` (Should not happen) *)
-             Ok (algodat, None)
-          | Set {set} ->
-             (* Timeout, forwarding `Set` to `Algo` *)
-             Algo.on_key_press_err algodat set
+        let on_timeout_err algodat = function
+          (* Timeout reached with an empty `Set` (Should not happen) *)
+          | Empty -> Ok (algodat, None)
+          (* Timeout, forwarding `Set` to `Algo` *)
+          | Set {set} -> Algo.on_key_press_err algodat set
 
+        (* Destroy is mandatory if user gets to fully load a new file while
+         *   a set is active *)
         let destroy = function
           | Empty -> ()
           | Set {timeout_listener} -> Lwt.cancel timeout_listener
@@ -135,7 +135,7 @@ module Make (Key : Browser_intf.Key_intf)
         ob : Dom_html.inputElement Js.t
       ; changes_listener : unit Lwt.t
 
-      (* Need to be ##destroy() between two phases *)
+      (* Need to be ##destroy() between two files *)
       ; cy : Cy.t option
 
       (* Need to be Lwt.cancel() *)
@@ -248,7 +248,7 @@ module Make (Key : Browser_intf.Key_intf)
 
         let on_keydown_err ke ({algodat; input} as dat) =
           match algodat with
-          | None -> Error "Undefined algodat"
+          | None -> Error "[on_keydown_err] Undefined algodat"
           | Some algodat ->
              (* Ftlog.lvl 3; *)
              (* let ({cy} as dat) = cleanup [] dat_dirty in *)
@@ -265,18 +265,18 @@ module Make (Key : Browser_intf.Key_intf)
           | None, _ -> Error "[on_inputtimeout_err] Undefined algodat"
           | _, None -> Error "[on_inputtimeout_err] Undefined cy"
           | Some algodat, Some cy -> (* shadowing algodat, cy *)
-             Printf.eprintf "Run.on_inputtimeout_err()\n%!";
-             match Input.on_timeout algodat input with
+             Ftlog.outnllvl 2 "Run.on_inputtimeout_err()\n%!";
+             (* Input.on_timeout_err() calls Algo.on_key_press_err()
+              *   returning a new `algodat` and a `vertex option` representing
+              *   a `leaf` reached in graph traversal. *)
+             match Input.on_timeout_err algodat input with
              | Error msg -> Error msg
              | Ok (algodat, spell_opt) ->
-                begin match spell_opt with
-                | None -> ()
-                | Some spell -> Cy.animate_node_err cy spell |> ignore
-                end;
+                Ftopt.value_map
+                  ~default:(Ok ()) ~f:(Cy.animate_node_err cy) spell_opt
+                |> ignore;
                 let cy =
-                  match Cy.update_focus_err cy algodat with
-                  | Error _ -> cy
-                  | Ok cy -> cy
+                  Fterr.ignore ~default:cy (Cy.update_focus_err algodat cy)
                 in
                 Ok {dat with input = Input.empty
                            ; algodat = Some algodat

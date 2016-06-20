@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/19 15:14:58 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/20 09:31:38 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -134,7 +134,9 @@ module Make (Key : Term_intf.Key_intf)
             | Empty -> aux dat
             | Exit -> Ok ()
             | Set kset -> match Algo.on_key_press_err dat kset with
-                          | Ok dat' -> aux dat'
+                          | Ok (dat', spellcast) ->
+                             (* TODO: spellcast *)
+                             aux dat'
                           | Error msg -> Error msg
           in
           aux algodat_init
