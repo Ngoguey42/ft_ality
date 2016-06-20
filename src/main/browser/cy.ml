@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/18 09:07:33 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/19 15:10:26 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/20 08:10:37 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -48,13 +48,37 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
 
     module JsInstance =
       struct
+        module Node =
+          struct
+            class type c =
+              object
+
+                (* Declared as `Js.Optdef.t` to detect `cy##getElementById()`
+                 * return value correctness *)
+                method id : int Js.Optdef.t Js.meth
+                method addClass : Js.js_string Js.t -> unit Js.t Js.meth
+                method removeClass : Js.js_string Js.t -> unit Js.t Js.meth
+
+              end
+          end
+
         class type c =
           object
             method width : int Js.meth
             method destroy : unit Js.meth
             method container : Dom_html.element Js.t Js.meth
-            (* method add : Js.Unsafe.t Js.t -> unit Js.meth *)
+
+            (* Always return an object, use `Node##id` to check correctness *)
+            method getElementById : int -> Node.c Js.t Js.meth
           end
+
+        let focus_node_of_algodat_err cy algodat =
+          let focusid = Algo.focus algodat |> Graph.V.uid in
+          let vert = cy##getElementById focusid in
+          match vert##id |> Js.Optdef.to_option with
+          | None -> Error "Could not retrieve `focused node` in dom"
+          | Some _ -> Ok vert
+
       end
 
     module Global =
@@ -80,7 +104,10 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
 
       end
 
-    type t = JsInstance.c Js.t
+    type t = {
+        cy : JsInstance.c Js.t
+      ; focus : JsInstance.Node.c Js.t
+      }
 
 
     module DomElement =
@@ -94,6 +121,10 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
 
     module Field =
       struct
+        let entry k v obj =
+          Js.Unsafe.set obj k v;
+          obj
+
         let order orig =
           object%js (self)
             (* val circle = ~&true *)
@@ -116,19 +147,15 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
           end
 
         let nodes_css =
-          let entry k v obj =
-            Js.Unsafe.set obj k v;
-            obj
-          in
           object%js
-            (* val width = ~|"mapData(65, 40, 80, 20, 60)" *)
-            (* val width = ~|"250" *)
-            (* val height = ~|"100" *)
+            (* val width = ~|"mapData(150, 140, 80, 20, 60)" *)
+            val width = ~|"110"
+            val height = ~|"60"
             (* val text-valign = ~|"center", *)
             (* val text-outline-width = 2, *)
             (* val text-outline-color = ~|"data(faveColor)", *)
             (* val background-color = ~|"data(faveColor)", *)
-            val shape = ~|"octagon"
+            val shape = ~|"ellipse"
             val label = ~|"data(name)"
             val color = ~|"#fff"
           end
@@ -140,11 +167,45 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
           |> entry ~|"text-outline-color" ~|"#000"
           |> entry ~|"background-color" ~|"#F5A45D"
           |> entry ~|"font-size" ~|"12px"
+          (* |> entry ~|"background-fit" ~|"cover" *)
+
+        let focus_css =
+          object%js
+          end
+          |> entry ~|"background-color" ~|"#FF1122"
+
+        let edges_css =
+          object%js
+            (* val width = ~|"mapData(65, 40, 80, 20, 60)" *)
+            (* val width = ~|"250" *)
+            (* val height = ~|"100" *)
+            (* val text-valign = ~|"center", *)
+            (* val text-outline-width = 2, *)
+            (* val text-outline-color = ~|"data(faveColor)", *)
+            (* val background-color = ~|"data(faveColor)", *)
+            (* val shape = ~|"octagon" *)
+            val label = ~|"data(name)"
+            val color = ~|"#fff"
+          end
+          (* (\* |> entry ~|"text-max-width" ~|"125"; *\) *)
+	        (* |> entry ~|"text-valign" ~|"center" *)
+          (* |> entry ~|"text-halign" ~|"top" *)
+          (* |> entry ~|"text-wrap" ~|"wrap" *)
+          |> entry ~|"text-outline-width" 2
+          |> entry ~|"text-outline-color" ~|"#888"
+          (* |> entry ~|"background-color" ~|"#F5A45D" *)
+          |> entry ~|"font-size" ~|"11px"
+          |> entry ~|"edge-text-rotation" ~|"autorotate"
+          (* |> entry ~|"curve-style" ~|"bezier" *)
 
         let style () =
           Global.stylesheet ()
           |> (fun i -> i##selector ~|"node")
           |> (fun i -> i##css nodes_css)
+          |> (fun i -> i##selector ~|"edge")
+          |> (fun i -> i##css edges_css)
+          |> (fun i -> i##selector ~|".focus")
+          |> (fun i -> i##css focus_css)
 
         let node id name =
           object%js (self)
@@ -171,6 +232,18 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
                 val target = dstid
               end
           end
+
+        let constructor_kwarg domelt algodat elements =
+          object%js (self)
+             val container = domelt
+             val elements = elements
+             val layout = order (Algo.origin_vertex algodat)
+             val style = style ()
+             val userZoomingEnabled = ~& false
+             val userPanningEnabled = ~& false
+             val boxSelectionEnabled = ~& false
+           end
+
 
       end
 
@@ -214,20 +287,34 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
 
       end
 
-    let create_err algodat =
-      match DomElement.of_eltid_err "cy" with
-      | Error msg ->
-         Error msg
-      | Ok elt ->
-         object%js (self)
-           val container = elt
-           val elements = Elements.of_algo algodat
-           val layout = Field.order (Algo.origin_vertex algodat)
-           val style = Field.style ()
-         end
-         |> Global.new_instance_err
+    let instance_of_algodat_err algodat =
+      Fterr.try_2expr
+        (DomElement.of_eltid_err "cy")
+        (fun domelt ->
+          let kwarg =
+            Field.constructor_kwarg domelt algodat (Elements.of_algo algodat)
+          in
+          Global.new_instance_err kwarg)
 
-    let destroy cy =
+    let create_err algodat =
+      Fterr.try_3expr
+        (instance_of_algodat_err algodat)
+        (fun cy ->
+          JsInstance.focus_node_of_algodat_err cy algodat)
+        (fun cy focus ->
+          focus##addClass ~|"focus" |> ignore;
+          Ok {cy; focus}
+        )
+
+    let destroy {cy} =
       cy##destroy
+
+    let update_focus_err {cy; focus} algodat =
+      focus##removeClass ~|"focus" |> ignore;
+      Fterr.try_2expr
+        (JsInstance.focus_node_of_algodat_err cy algodat)
+        (fun focus -> (* shadowing focus *)
+          focus##addClass ~|"focus" |> ignore;
+          Ok {cy; focus})
 
   end

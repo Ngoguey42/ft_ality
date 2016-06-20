@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/19 18:43:28 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/20 08:14:28 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -193,22 +193,9 @@ module Make (Key : Browser_intf.Key_intf)
           in
           ListLabels.fold_left ~f:aux ~init:dat_start actions
 
-        let run2 p1 p2 =
-          match p1 with
-          | Error msg -> Error msg
-          | Ok v1 -> p2 v1
-
-        let run3 p1 p2 p3 =
-          match p1 with
-          | Error msg -> Error msg
-          | Ok v1 ->
-             match p2 v1 with
-             | Error msg -> Error msg
-             | Ok v2 -> p3 v1 v2
-
         let on_dom_loaded_err () =
           Ftlog.outnllvl 6 "Run.init_err()";
-          run2
+          Fterr.try_2expr
             (OpenButton.create_err ())
             (fun ob ->
               Ftlog.outnllvl 7 "Adding listener to open_button change";
@@ -225,7 +212,7 @@ module Make (Key : Browser_intf.Key_intf)
           Ftlog.outnllvl 2 "Run.on_change_err()";
           Ftlog.lvl 3;
           let ({ob} as dat) = cleanup [`File_listener_cancel] dat_dirty in
-          run2
+          Fterr.try_2expr
             (OpenButton.query_file_content_err ob)
             (fun t ->
               Ftlog.outnllvl 3 "Adding listener to on_file_loaded";
@@ -245,7 +232,7 @@ module Make (Key : Browser_intf.Key_intf)
               stdinfiller (fun () -> "");
               Js.to_string jstr
             );
-          run3
+          Fterr.try_3expr
             (Algo.create_err stdin)
             (fun algodat ->
               Cy.create_err algodat)
@@ -273,15 +260,24 @@ module Make (Key : Browser_intf.Key_intf)
              let input = Input.add kp Cl.on_inputtimeout input in
              Ok {dat with input}
 
-        let on_inputtimeout_err ({input; algodat} as dat) =
-          match algodat with
-          | None -> Error "Undefined algodat"
-          | Some algodat ->
+        let on_inputtimeout_err ({input; algodat; cy} as dat) =
+          match algodat, cy with
+          | None, _ -> Error "[on_inputtimeout_err] Undefined algodat"
+          | _, None -> Error "[on_inputtimeout_err] Undefined cy"
+          | Some algodat, Some cy -> (* shadowing algodat, cy *)
              Printf.eprintf "Run.on_inputtimeout_err()\n%!";
              match Input.on_timeout algodat input with
              | Error msg -> Error msg
              | Ok algodat ->
-                Ok {dat with input = Input.empty; algodat = Some algodat}
+                let cy =
+                  match Cy.update_focus_err cy algodat with
+                  | Error _ -> cy
+                  | Ok cy -> cy
+                in
+                Ok {dat with input = Input.empty
+                           ; algodat = Some algodat
+                           ; cy = Some cy}
+
       end
 
     module Closure (R : Run_intf) : Closure_intf =

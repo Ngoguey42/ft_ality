@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/18 13:48:03 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/20 07:19:00 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -268,4 +268,7 @@ module Make (Key : Shared_intf.Key_intf)
 
     let origin_vertex {orig} =
       orig
+
+    let focus {state} =
+      state
   end

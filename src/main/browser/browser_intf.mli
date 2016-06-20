@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/16 09:58:01 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/19 15:09:17 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/20 08:11:00 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -26,4 +26,5 @@ module type Cy_intf =
 
     val create_err : algo -> (t, string) result
     val destroy : t -> unit
+    val update_focus_err : t -> algo -> (t, string) result
   end

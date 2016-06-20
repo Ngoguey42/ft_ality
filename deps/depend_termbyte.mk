@@ -1,9 +1,11 @@
-MKGEN_SRCSBIN_TERMBYTE := _build/src/main/shared/gamekey.cmo _build/src/bt/avl.cmo _build/src/bt/ftmap.cmo _build/src/ft/ftlog.cmo _build/src/ft/ftopt.cmo _build/src/ft/ftlist.cmo _build/src/graph/ftgraph.cmo _build/src/main/shared/keypair.cmo _build/src/main/shared/graph_inst.cmo _build/src/main/shared/algo.cmo _build/src/main/terminal/key.cmo _build/src/main/terminal/display.cmo _build/src/main/terminal/main.cmo
+MKGEN_SRCSBIN_TERMBYTE := _build/src/main/shared/gamekey.cmo _build/src/bt/avl.cmo _build/src/bt/ftmap.cmo _build/src/ft/fterr.cmo _build/src/ft/ftlog.cmo _build/src/ft/ftopt.cmo _build/src/ft/ftlist.cmo _build/src/graph/ftgraph.cmo _build/src/main/shared/keypair.cmo _build/src/main/shared/graph_inst.cmo _build/src/main/shared/algo.cmo _build/src/main/terminal/key.cmo _build/src/main/terminal/display.cmo _build/src/main/terminal/main.cmo
 
 _build/src/bt/avl.cmo : src/bt/avl.ml | _build/src/bt/
 _build/src/bt/avl.cmx : src/bt/avl.ml | _build/src/bt/
 _build/src/bt/ftmap.cmo : src/bt/ftmap.ml | _build/src/bt/
 _build/src/bt/ftmap.cmx : src/bt/ftmap.ml | _build/src/bt/
+_build/src/ft/fterr.cmo : src/ft/fterr.ml | _build/src/ft/
+_build/src/ft/fterr.cmx : src/ft/fterr.ml | _build/src/ft/
 _build/src/ft/ftlist.cmo : src/ft/ftlist.ml _build/src/ft/ftopt.cmo | _build/src/ft/
 _build/src/ft/ftlist.cmx : src/ft/ftlist.ml _build/src/ft/ftopt.cmx | _build/src/ft/
 _build/src/ft/ftlog.cmo : src/ft/ftlog.ml | _build/src/ft/

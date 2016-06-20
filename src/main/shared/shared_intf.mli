@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/02 11:34:11 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/19 14:52:08 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/20 07:18:41 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -126,6 +126,8 @@ module type Algo_intf =
     val fold_keypair : (keypair -> 'a -> 'a) -> t -> 'a -> 'a
     val fold_vertex : (vertex -> 'a -> 'a) -> t -> 'a -> 'a
     val fold_edge : (edge -> 'a -> 'a) -> t -> 'a -> 'a
+    val focus : t -> vertex
+
   end
 
 (* Module Display (Specific to display) *)
