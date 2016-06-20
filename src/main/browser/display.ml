@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/20 09:26:51 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/20 11:44:13 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -222,11 +222,12 @@ module Make (Key : Browser_intf.Key_intf)
         let on_file_loaded_err jstr dat_dirty =
           Ftlog.outnllvl 2 "Run.on_file_loaded_err()";
           Ftlog.lvl 3;
-          let ({cy} as dat) =
+          let ({cy; ob} as dat) =
             cleanup [`Keys_listener_cancel; `Cy_destroy
                      ; `File_listener_cleanup; `Input_listener_cancel]
                     dat_dirty
           in
+          ob##blur;
           let stdinfiller = Sys_js.set_channel_filler stdin in
           stdinfiller (fun () ->
               stdinfiller (fun () -> "");
