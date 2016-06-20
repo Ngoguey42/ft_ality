@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/20 08:14:28 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/20 08:46:54 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -120,7 +120,7 @@ module Make (Key : Browser_intf.Key_intf)
         let on_timeout algodat = function
           | Empty ->
              (* Timeout reached with an empty `Set` (Should not happen) *)
-             Ok algodat
+             Ok (algodat, None)
           | Set {set} ->
              (* Timeout, forwarding `Set` to `Algo` *)
              Algo.on_key_press_err algodat set
@@ -268,7 +268,11 @@ module Make (Key : Browser_intf.Key_intf)
              Printf.eprintf "Run.on_inputtimeout_err()\n%!";
              match Input.on_timeout algodat input with
              | Error msg -> Error msg
-             | Ok algodat ->
+             | Ok (algodat, spell_opt) ->
+                begin match spell_opt with
+                | None -> ()
+                | Some spell -> Cy.animate_node_err cy spell |> ignore
+                end;
                 let cy =
                   match Cy.update_focus_err cy algodat with
                   | Error _ -> cy

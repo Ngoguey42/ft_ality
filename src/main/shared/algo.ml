@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/20 07:19:00 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/20 08:43:52 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -230,25 +230,26 @@ module Make (Key : Shared_intf.Key_intf)
             Ok dat
 
     let on_key_press_err ({g; state; orig} as dat) kset =
-      Ftlog.lvl 4;
-      assert (Graph.mem_vertex g state);
-      Ftlog.out "Algo.on_key_press(%s)"
+      Ftlog.outnllvl 4 "Algo.on_key_press(%s)"
       @@ KeyPair.Set.to_string kset;
-
+      assert (Graph.mem_vertex g state);
       let state =
         match Graph.binary_find_succ_e (Graph.Elabel.compare kset) g state with
         | None -> orig
         | Some e -> Graph.E.dst e
       in
-      Graph.fold_succ_e (fun e acc ->
-          let s = Graph.E.label e
-                  |> Graph.Elabel.to_string
-          in
-          s::acc
-        ) g state []
-      |> String.concat "; "
-      |> Ftlog.out_raw " succ_e(%s)%!\n";
-      Ok {dat with state}
+      if state |> Graph.V.label |> Graph.Vlabel.is_spell
+      then Ok ({dat with state = orig}, Some state)
+      else Ok ({dat with state}, None)
+      (* Graph.fold_succ_e (fun e acc -> *)
+      (*     let s = Graph.E.label e *)
+      (*             |> Graph.Elabel.to_string *)
+      (*     in *)
+      (*     s::acc *)
+      (*   ) g state [] *)
+      (* |> String.concat "; " *)
+      (* |> Ftlog.out_raw " succ_e(%s)%!\n"; *)
+
 
     let keypair_of_key {dicts} key =
       KeyPair.BidirDict.keypair_of_key dicts key

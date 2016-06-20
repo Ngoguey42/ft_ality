@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/18 09:07:33 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/20 08:10:37 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/20 08:56:54 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -72,12 +72,18 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
             method getElementById : int -> Node.c Js.t Js.meth
           end
 
+        let node_of_vertex_err cy vert =
+          let focusid = Graph.V.uid vert in
+          let node = cy##getElementById focusid in
+          match node##id |> Js.Optdef.to_option with
+          | None ->
+             Error (Graph.V.label vert
+                    |> Graph.Vlabel.to_string
+                    |> Printf.sprintf "Could not retrieve node `%s` in dom")
+          | Some _ -> Ok node
+
         let focus_node_of_algodat_err cy algodat =
-          let focusid = Algo.focus algodat |> Graph.V.uid in
-          let vert = cy##getElementById focusid in
-          match vert##id |> Js.Optdef.to_option with
-          | None -> Error "Could not retrieve `focused node` in dom"
-          | Some _ -> Ok vert
+          node_of_vertex_err cy (Algo.focus algodat)
 
       end
 
@@ -174,6 +180,17 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
           end
           |> entry ~|"background-color" ~|"#FF1122"
 
+        let spellcast_css =
+          object%js
+          end
+          |> entry ~|"background-color" ~|"#61bffc"
+          (* |> entry ~|"line-color" ~|"#61bffc" *)
+          (* |> entry ~|"target-arrow-color" ~|"#61bffc" *)
+          |> entry ~|"transition-property"
+                   (* ~|"background-color, line-color, target-arrow-color" *)
+                   ~|"background-color, target-arrow-color"
+          |> entry ~|"transition-duration" ~|"0.5s"
+
         let edges_css =
           object%js
             (* val width = ~|"mapData(65, 40, 80, 20, 60)" *)
@@ -206,6 +223,8 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
           |> (fun i -> i##css edges_css)
           |> (fun i -> i##selector ~|".focus")
           |> (fun i -> i##css focus_css)
+          |> (fun i -> i##selector ~|".spellcast")
+          |> (fun i -> i##css spellcast_css)
 
         let node id name =
           object%js (self)
@@ -243,8 +262,6 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
              val userPanningEnabled = ~& false
              val boxSelectionEnabled = ~& false
            end
-
-
       end
 
     module Elements =
@@ -317,4 +334,16 @@ module Make (Graph : Shared_intf.Graph_impl_intf)
           focus##addClass ~|"focus" |> ignore;
           Ok {cy; focus})
 
+    let animate_node_err {cy} vert =
+      Ftlog.outnllvl 4 "Cy.animate_node_err()";
+      match JsInstance.node_of_vertex_err cy vert with
+      | Error msg -> Error msg
+      | Ok node -> node##addClass ~|"spellcast" |> ignore;
+                   Lwt.bind
+                     (Lwt_js.sleep 0.6)
+                     (fun _ ->
+                       node##removeClass ~|"spellcast" |> ignore;
+                       Lwt.return_unit)
+                   |> ignore;
+                   Ok ()
   end

@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/14 13:59:02 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/19 14:52:35 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/20 08:25:54 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -45,6 +45,12 @@ module Make (KeyPair : Shared_intf.KeyPair_intf)
 
         let get_cost {cost} =
           cost
+
+        let is_spell {state} =
+          match state with
+          | Step -> false
+          | _ -> true
+
       end
 
     module Elabel =
