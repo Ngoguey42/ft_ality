@@ -115,7 +115,7 @@ cd tmp_ftality
 
 <BR>
 > OCaml grammar
-> - http://askra.de/software/ocaml-doc/4.01/full-grammar.html
+> - http://caml.inria.fr/pub/docs/manual-ocaml/language.html
 
 <BR>
 > Cytoscape.js, graph rendering in browser with js

@@ -6,20 +6,20 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/20 09:31:38 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/21 15:43:19 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
 module Make (Key : Term_intf.Key_intf)
             (KeyPair : Shared_intf.KeyPair_intf
              with type key = Key.t)
-            (Graph : Shared_intf.Graph_impl_intf
-             with type kpset = KeyPair.Set.t)
+            (Graph : Shared_intf.Graph_inst_intf
+             with module KP = KeyPair)
             (Algo : Shared_intf.Algo_intf
              with type key = Key.t
-             with type keypair = KeyPair.t
-             with type kpset = KeyPair.Set.t)
-       : (Shared_intf.Display_intf) =
+             with module KP = KeyPair
+             with module G = Graph)
+       : Shared_intf.Display_intf =
   struct
 
     (* type keypair = KeyPair.t *)

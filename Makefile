@@ -72,9 +72,9 @@ MKGEN := $(subst $(NEWLINE), ,$(MKGEN_BODY))
 # Default  flags
 BASE_FLAGS		=
 HEAD_FLAGS		= $(addprefix -I ,$(INCLUDEDIRS))
-LD_FLAGS		=
+LD_FLAGS			=
 
-MAKEFLAGS		+= --no-print-directory
+MAKEFLAGS		+= --no-print-directory -j
 
 # ============================================================================ #
 # Build mode

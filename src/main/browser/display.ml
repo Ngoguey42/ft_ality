@@ -6,25 +6,22 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/20 11:44:13 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/21 15:39:01 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
 module Make (Key : Browser_intf.Key_intf)
             (KeyPair : Shared_intf.KeyPair_intf
              with type key = Key.t)
-            (Graph : Shared_intf.Graph_impl_intf
-             with type kpset = KeyPair.Set.t)
+            (Graph : Shared_intf.Graph_inst_intf
+             with module KP = KeyPair)
             (Algo : Shared_intf.Algo_intf
              with type key = Key.t
-             with type keypair = KeyPair.t
-             with type kpset = KeyPair.Set.t
-             with type vertex = Graph.V.t
-             with type edge = Graph.E.t)
+             with module KP = KeyPair
+             with module G = Graph)
             (Cy : Browser_intf.Cy_intf
-             with type vertex = Graph.V.t
-             with type edge = Graph.E.t
-             with type algo = Algo.t)
+             with module G = Graph
+             with module A = Algo)
        : Shared_intf.Display_intf =
   struct
 

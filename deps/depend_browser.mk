@@ -1,4 +1,4 @@
-MKGEN_SRCSBIN_BROWSER := _build/src/main/shared/gamekey.cmo _build/src/main/browser/cy_style.cmo _build/src/bt/avl.cmo _build/src/bt/ftmap.cmo _build/src/ft/fterr.cmo _build/src/ft/ftlog.cmo _build/src/ft/ftopt.cmo _build/src/ft/ftlist.cmo _build/src/graph/ftgraph.cmo _build/src/main/shared/keypair.cmo _build/src/main/shared/graph_inst.cmo _build/src/main/shared/algo.cmo _build/src/main/browser/cy.cmo _build/src/main/browser/display.cmo _build/src/main/browser/key.cmo _build/src/main/browser/main.cmo
+MKGEN_SRCSBIN_BROWSER := _build/src/main/browser/cy_style.cmo _build/src/bt/avl.cmo _build/src/bt/ftmap.cmo _build/src/ft/fterr.cmo _build/src/ft/ftlog.cmo _build/src/ft/ftopt.cmo _build/src/ft/ftlist.cmo _build/src/graph/ftgraph.cmo _build/src/main/shared/keypair.cmo _build/src/main/shared/graph_inst.cmo _build/src/main/shared/gamekey.cmo _build/src/main/shared/algo.cmo _build/src/main/browser/cy.cmo _build/src/main/browser/display.cmo _build/src/main/browser/key.cmo _build/src/main/browser/main.cmo
 
 _build/src/bt/avl.cmo : src/bt/avl.ml | _build/src/bt/
 _build/src/bt/avl.cmx : src/bt/avl.ml | _build/src/bt/
@@ -27,12 +27,13 @@ _build/src/main/browser/jsobj.cmi : src/main/browser/jsobj.mli | _build/src/main
 _build/src/main/browser/key.cmi : src/main/browser/key.mli _build/src/main/browser/browser_intf.cmi | _build/src/main/browser/
 _build/src/main/browser/key.cmo : src/main/browser/key.ml _build/src/ft/ftlog.cmo _build/src/main/browser/key.cmi | _build/src/main/browser/
 _build/src/main/browser/key.cmx : src/main/browser/key.ml _build/src/ft/ftlog.cmx _build/src/main/browser/key.cmi | _build/src/main/browser/
-_build/src/main/browser/main.cmo : src/main/browser/main.ml _build/src/ft/ftlog.cmo _build/src/main/browser/browser_intf.cmi _build/src/main/browser/cy.cmo _build/src/main/browser/display.cmo _build/src/main/browser/key.cmi _build/src/main/shared/algo.cmo _build/src/main/shared/gamekey.cmo _build/src/main/shared/graph_inst.cmo _build/src/main/shared/keypair.cmo _build/src/main/shared/shared_intf.cmi | _build/src/main/browser/
+_build/src/main/browser/main.cmo : src/main/browser/main.ml _build/src/ft/ftlog.cmo _build/src/main/browser/browser_intf.cmi _build/src/main/browser/cy.cmo _build/src/main/browser/display.cmo _build/src/main/browser/key.cmi _build/src/main/shared/algo.cmo _build/src/main/shared/gamekey.cmi _build/src/main/shared/graph_inst.cmo _build/src/main/shared/keypair.cmo _build/src/main/shared/shared_intf.cmi | _build/src/main/browser/
 _build/src/main/browser/main.cmx : src/main/browser/main.ml _build/src/ft/ftlog.cmx _build/src/main/browser/browser_intf.cmi _build/src/main/browser/cy.cmx _build/src/main/browser/display.cmx _build/src/main/browser/key.cmx _build/src/main/shared/algo.cmx _build/src/main/shared/gamekey.cmx _build/src/main/shared/graph_inst.cmx _build/src/main/shared/keypair.cmx _build/src/main/shared/shared_intf.cmi | _build/src/main/browser/
 _build/src/main/shared/algo.cmo : src/main/shared/algo.ml _build/src/ft/ftlog.cmo _build/src/main/shared/shared_intf.cmi | _build/src/main/shared/
 _build/src/main/shared/algo.cmx : src/main/shared/algo.ml _build/src/ft/ftlog.cmx _build/src/main/shared/shared_intf.cmi | _build/src/main/shared/
-_build/src/main/shared/gamekey.cmo : src/main/shared/gamekey.ml | _build/src/main/shared/
-_build/src/main/shared/gamekey.cmx : src/main/shared/gamekey.ml | _build/src/main/shared/
+_build/src/main/shared/gamekey.cmi : src/main/shared/gamekey.mli _build/src/main/shared/shared_intf.cmi | _build/src/main/shared/
+_build/src/main/shared/gamekey.cmo : src/main/shared/gamekey.ml _build/src/main/shared/gamekey.cmi | _build/src/main/shared/
+_build/src/main/shared/gamekey.cmx : src/main/shared/gamekey.ml _build/src/main/shared/gamekey.cmi | _build/src/main/shared/
 _build/src/main/shared/graph_inst.cmo : src/main/shared/graph_inst.ml _build/src/graph/ftgraph.cmi _build/src/main/shared/shared_intf.cmi | _build/src/main/shared/
 _build/src/main/shared/graph_inst.cmx : src/main/shared/graph_inst.ml _build/src/graph/ftgraph.cmx _build/src/main/shared/shared_intf.cmi | _build/src/main/shared/
 _build/src/main/shared/keypair.cmo : src/main/shared/keypair.ml _build/src/bt/avl.cmo _build/src/main/shared/shared_intf.cmi | _build/src/main/shared/

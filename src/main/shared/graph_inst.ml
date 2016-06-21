@@ -6,21 +6,21 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/14 13:59:02 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/20 08:25:54 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/21 15:07:11 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
 module Make (KeyPair : Shared_intf.KeyPair_intf)
-       : (Shared_intf.Graph_impl_intf
-          with type kpset = KeyPair.Set.t) =
+       : (Shared_intf.Graph_inst_intf
+          with module KP = KeyPair) =
   struct
-    type kpset = KeyPair.Set.t
+    module KP = KeyPair
 
     module Vlabel =
       struct
         type state = Step | Spell of string
         type t = {
-            cost : kpset list
+            cost : KP.Set.t list
           ; state : state
           }
 
@@ -55,7 +55,7 @@ module Make (KeyPair : Shared_intf.KeyPair_intf)
 
     module Elabel =
       struct
-        type t = kpset
+        type t = KP.Set.t
 
         let default = KeyPair.Set.empty
 

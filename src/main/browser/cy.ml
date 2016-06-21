@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/18 09:07:33 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/21 14:30:04 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/21 15:11:51 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -17,23 +17,19 @@ let log msg =
                      [|Js.Unsafe.inject msg|]
   |> ignore
 
-module Make (Graph : Shared_intf.Graph_impl_intf)
+module Make (Graph : Shared_intf.Graph_inst_intf)
             (Algo : Shared_intf.Algo_intf
-             with type vertex = Graph.V.t
-             with type edge = Graph.E.t)
+             with module G = Graph)
        : (Browser_intf.Cy_intf
-          with type vertex = Graph.V.t
-          with type edge = Graph.E.t
-          with type algo = Algo.t) =
+          with module G = Graph
+          with module A = Algo) =
   struct
-    type vertex = Graph.V.t
-    type edge = Graph.E.t
-    type algo = Algo.t
-
     type t = {
         cy : Jsobj.cy Js.t
       ; focus : Jsobj.cynode Js.t
       }
+    module G = Graph
+    module A = Algo
 
 
     (* Internal *)

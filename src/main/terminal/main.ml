@@ -6,25 +6,20 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/10 11:51:10 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/19 15:14:15 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/21 15:44:55 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
-module rec K : Term_intf.Key_intf = Key
-   and GK : Shared_intf.GameKey_intf = Gamekey
-   and KP : (Shared_intf.KeyPair_intf
-             with type key = K.t
-             with type gamekey = GK.t) = Keypair.Make(K)(GK)
-   and G : (Shared_intf.Graph_impl_intf
-            with type kpset = KP.Set.t) = Graph_inst.Make(KP)
-   and D : (Shared_intf.Display_intf) = Display.Make(K)(KP)(G)(A)
-   and A : (Shared_intf.Algo_intf
-            with type key = K.t
-            with type keypair = KP.t
-            with type kpset = KP.Set.t
-            with type vertex = G.V.t
-            with type edge = G.E.t) = Algo.Make(K)(GK)(KP)(G)
-
+module KP : (Shared_intf.KeyPair_intf
+             with module GK = Gamekey
+             with type key = Key.t) = Keypair.Make(Key)(Gamekey)
+module G : (Shared_intf.Graph_inst_intf
+            with module KP = KP) = Graph_inst.Make(KP)
+module A : (Shared_intf.Algo_intf
+            with type key = Key.t
+            with module KP = KP
+            with module G = G) = Algo.Make(Key)(Gamekey)(KP)(G)
+module D : Shared_intf.Display_intf = Display.Make(Key)(KP)(G)(A)
 
 let () =
   match D.run_err () with

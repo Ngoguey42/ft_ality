@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/15 10:58:13 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/19 14:53:15 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/21 15:39:34 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -14,14 +14,13 @@ module Make (Key : Shared_intf.Key_intf)
             (GameKey : Shared_intf.GameKey_intf)
        : (Shared_intf.KeyPair_intf
           with type key = Key.t
-          with type gamekey = GameKey.t) =
+          with module GK = GameKey) =
   struct
-
     module Impl =
       struct
         type key = Key.t
-        type gamekey = GameKey.t
-        type t = gamekey * key
+        module GK = GameKey
+        type t = GK.t * key
 
         let default = GameKey.default, Key.default
 

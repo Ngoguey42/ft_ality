@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:21 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/20 08:43:52 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/21 15:37:53 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -14,17 +14,14 @@ module Make (Key : Shared_intf.Key_intf)
             (GameKey : Shared_intf.GameKey_intf)
             (KeyPair : Shared_intf.KeyPair_intf
              with type key = Key.t
-             with type gamekey = GameKey.t)
-            (Graph : Shared_intf.Graph_impl_intf
-             with type kpset = KeyPair.Set.t)
+             with module GK = GameKey)
+            (Graph : Shared_intf.Graph_inst_intf
+             with module KP = KeyPair)
        : (Shared_intf.Algo_intf
           with type key = Key.t
-          with type keypair = KeyPair.t
-          with type kpset = KeyPair.Set.t
-          with type vertex = Graph.V.t
-          with type edge = Graph.E.t) =
+          with module KP = KeyPair
+          with module G = Graph) =
   struct
-
     type t = {
         g : Graph.t
       ; state : Graph.V.t
@@ -32,10 +29,9 @@ module Make (Key : Shared_intf.Key_intf)
       ; dicts : KeyPair.BidirDict.t
       }
     type key = Key.t
-    type keypair = KeyPair.t
-    type kpset = KeyPair.Set.t
-    type vertex = Graph.V.t
-    type edge = Graph.E.t
+    module KP = KeyPair
+    module G = Graph
+
 
     (* Internal *)
 
@@ -206,7 +202,6 @@ module Make (Key : Shared_intf.Key_intf)
 
       let g = Debug.fill_graph orig g dicts in
       Ftlog.lvl 8;
-      (* Ftlog.outnl "declare all vertices with Display.declare_vertex()"; *)
       Ok {g; state = orig; orig; dicts}
 
 
@@ -241,15 +236,6 @@ module Make (Key : Shared_intf.Key_intf)
       if state |> Graph.V.label |> Graph.Vlabel.is_spell
       then Ok ({dat with state = orig}, Some state)
       else Ok ({dat with state}, None)
-      (* Graph.fold_succ_e (fun e acc -> *)
-      (*     let s = Graph.E.label e *)
-      (*             |> Graph.Elabel.to_string *)
-      (*     in *)
-      (*     s::acc *)
-      (*   ) g state [] *)
-      (* |> String.concat "; " *)
-      (* |> Ftlog.out_raw " succ_e(%s)%!\n"; *)
-
 
     let keypair_of_key {dicts} key =
       KeyPair.BidirDict.keypair_of_key dicts key

@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/16 09:58:01 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/20 09:21:51 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/21 14:50:09 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -20,12 +20,11 @@ module type Key_intf =
 module type Cy_intf =
   sig
     type t
-    type vertex
-    type edge
-    type algo
+    module G : Shared_intf.Graph_inst_intf
+    module A : Shared_intf.Algo_intf
 
-    val create_err : algo -> (t, string) result
+    val create_err : A.t -> (t, string) result
     val destroy : t -> unit
-    val update_focus_err : algo -> t -> (t, string) result
-    val animate_node_err : t -> vertex -> (unit, string) result
+    val update_focus_err : A.t -> t -> (t, string) result
+    val animate_node_err : t -> G.V.t -> (unit, string) result
   end
