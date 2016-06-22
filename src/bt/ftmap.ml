@@ -59,8 +59,6 @@ module type S =
     val check : 'a t -> bool
   end
 
-(*s Sets implemented as reb-black trees. *)
-
 module type Make_intf =
   functor (Ord : OrderedType) ->
   (S with type key = Ord.t)
