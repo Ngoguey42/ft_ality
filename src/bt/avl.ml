@@ -23,7 +23,7 @@ module type OrderedType =
 
 module type S =
   sig
-    (* Interface from std and Set, same ordering, same prototypes *)
+    (* Interface from std Set, same ordering, same prototypes *)
 
     type elt
     type t
@@ -60,8 +60,6 @@ module type S =
     val binary_find : (elt -> int) -> t -> elt option
     val check : t -> bool (* not present in std *)
   end
-
-(*s Sets implemented as reb-black trees. *)
 
 module type Make_intf =
   functor (Ord : OrderedType) ->
