@@ -6,7 +6,7 @@
 (*   By: Ngo <ngoguey@student.42.fr>                +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/03 17:26:03 by Ngo               #+#    #+#             *)
-(*   Updated: 2016/06/21 15:39:01 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/22 08:07:43 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -144,27 +144,28 @@ module Make (Key : Browser_intf.Key_intf)
       ; algodat : Algo.t option
       }
 
-    type res = (t, string) result
-    module type Run_intf =
-      sig
-        val on_dom_loaded_err : unit -> res
-        val on_change_err : t -> res
-        val on_file_loaded_err : Js.js_string Js.t -> t -> res
-        val on_keydown_err : Dom_html.keyboardEvent Js.t -> t -> res
-        val on_inputtimeout_err : t -> res
-      end
-
-    module type Closure_intf =
-      sig
-        val on_dom_loaded_err : unit -> (unit, string) result
-        val on_change : Dom_html.event Js.t -> unit Lwt.t -> unit Lwt.t
-        val on_file_loaded : Js.js_string Js.t -> unit Lwt.t
-        val on_keydown : Dom_html.keyboardEvent Js.t -> unit Lwt.t -> unit Lwt.t
-        val on_inputtimeout : unit -> unit Lwt.t
-      end
-
-    module Run (Cl : Closure_intf) : Run_intf =
+    (* Two recursive modules `Run` and `Closure`
+     *   `Closure`: Holds imperative operations inherent to browser programming.
+     *     Entry points of all callbacks.
+     *     Closure is initialized in `Closure.on_dom_loaded()`.
+     *   `Run`: Holds the core operations once `type t` has been extracted
+     *     from `Closure`. Always return a `type res`. Schedule future
+     *     callbacks.
+     *)
+    module
+      rec
+        Run :
+          sig
+            type res = (t, string) result
+            val on_dom_loaded_err : unit -> res
+            val on_change_err : t -> res
+            val on_file_loaded_err : Js.js_string Js.t -> t -> res
+            val on_keydown_err : Dom_html.keyboardEvent Js.t -> t -> res
+            val on_inputtimeout_err : t -> res
+          end =
       struct
+        type res = (t, string) result
+
         let cleanup actions dat_start =
           let aux dat action =
             match action, dat with
@@ -191,19 +192,19 @@ module Make (Key : Browser_intf.Key_intf)
           ListLabels.fold_left ~f:aux ~init:dat_start actions
 
         let on_dom_loaded_err () =
-          Ftlog.outnllvl 6 "Run.init_err()";
+          Ftlog.outnllvl 2 "Run.init_err()";
           Fterr.try_2expr
             (OpenButton.create_err ())
             (fun ob ->
-              Ftlog.outnllvl 7 "Adding listener to open_button change";
+              Ftlog.outnllvl 3 "Adding listener to open_button change";
               Ok { ob
                  ; changes_listener =
-                     OpenButton.add_changes_listener ob Cl.on_change
+                     OpenButton.add_changes_listener ob Closure.on_change
                  ; cy = None
                  ; keysdown_listener = None
-               ; file_listener = None
-               ; input = Input.empty
-               ; algodat = None})
+                 ; file_listener = None
+                 ; input = Input.empty
+                 ; algodat = None})
 
         let on_change_err dat_dirty =
           Ftlog.outnllvl 2 "Run.on_change_err()";
@@ -213,7 +214,7 @@ module Make (Key : Browser_intf.Key_intf)
             (OpenButton.query_file_content_err ob)
             (fun t ->
               Ftlog.outnllvl 3 "Adding listener to on_file_loaded";
-              let fl = Lwt.bind t Cl.on_file_loaded in
+              let fl = Lwt.bind t Closure.on_file_loaded in
               Ok {dat with file_listener = Some fl})
 
         let on_file_loaded_err jstr dat_dirty =
@@ -237,7 +238,7 @@ module Make (Key : Browser_intf.Key_intf)
             (fun algodat cy ->
               Ftlog.outnllvl 3 "Adding listener to keypresses";
               let kdl =
-                Lwt_js_events.keydowns Dom_html.document Cl.on_keydown
+                Lwt_js_events.keydowns Dom_html.document Closure.on_keydown
               in
               (* TODO: investigate simultaneous presses *)
               Ok {dat with algodat = Some algodat
@@ -255,7 +256,7 @@ module Make (Key : Browser_intf.Key_intf)
              let kp = Ftopt.value_thunk (Algo.keypair_of_key algodat k)
                                         ~f:(fun () -> KeyPair.of_key k)
              in
-             let input = Input.add kp Cl.on_inputtimeout input in
+             let input = Input.add kp Closure.on_inputtimeout input in
              Ok {dat with input}
 
         let on_inputtimeout_err ({input; algodat; cy} as dat) =
@@ -282,56 +283,60 @@ module Make (Key : Browser_intf.Key_intf)
 
       end
 
-    module Closure (R : Run_intf) : Closure_intf =
+    and Closure :
+          sig
+            val on_dom_loaded : unit -> unit Lwt.t
+            val on_change : Dom_html.event Js.t -> unit Lwt.t -> unit Lwt.t
+            val on_file_loaded : Js.js_string Js.t -> unit Lwt.t
+            val on_keydown : Dom_html.keyboardEvent Js.t -> unit Lwt.t
+                             -> unit Lwt.t
+            val on_inputtimeout : unit -> unit Lwt.t
+          end =
       struct
         (* Only bit of imperative style contained in this closure *)
         let data_ref = ref None
 
-        let on_dom_loaded_err () =
-          Ftlog.outnllvl 4 "Closure.init_err()";
-          match R.on_dom_loaded_err () with
+        let save_result_lwt = function
+          | Error msg -> Error.Lwt.msg msg
           | Ok dat -> data_ref := Some dat;
-                      Ok ()
-          | Error msg -> Error msg
+                      Lwt.return_unit
 
         let dispatch_event_lwt f =
           match !data_ref with
-          | None ->
-             Error.Lwt.missing_data ()
-          | Some dat ->
-             match f dat with
-             | Error msg ->
-                Error.Lwt.msg msg
-             | Ok dat -> (* Shadowing dat *)
-                data_ref := Some dat;
-                Lwt.return_unit
+          | None -> Error.Lwt.missing_data ()
+          | Some dat -> f dat |> save_result_lwt
+
+
+        let on_dom_loaded () =
+          Ftlog.outnllvl 0 "Closure.on_dom_loaded()";
+          Run.on_dom_loaded_err () |> save_result_lwt
 
         let on_change _ _ =
           Ftlog.outnllvl 0 "Closure.on_change()";
-          dispatch_event_lwt R.on_change_err
+          dispatch_event_lwt Run.on_change_err
 
         let on_file_loaded jstr =
           Ftlog.outnllvl 0 "Closure.on_file_loaded()";
-          dispatch_event_lwt (R.on_file_loaded_err jstr)
+          dispatch_event_lwt (Run.on_file_loaded_err jstr)
 
         let on_keydown ke _ =
           Ftlog.outnllvl 0 "Closure.on_keydown()";
-          dispatch_event_lwt (R.on_keydown_err ke)
+          dispatch_event_lwt (Run.on_keydown_err ke)
 
         let on_inputtimeout () =
           Ftlog.outnllvl 0 "Closure.on_inputtimeout()";
-          dispatch_event_lwt R.on_inputtimeout_err
+          dispatch_event_lwt Run.on_inputtimeout_err
       end
-
-    module rec Cl : Closure_intf = Closure(R)
-       and R : Run_intf = Run(Cl)
 
 
     (* Exposed *)
 
     let run_err () =
-      Ftlog.lvl 2;
-      Ftlog.outnl "Display.run_err()";
-      Cl.on_dom_loaded_err ()
-
+      Ftlog.outnllvl 0 "Display.run_err()";
+      Ftlog.outnllvl 2 "Adding listener to domContentLoaded";
+      Lwt.bind
+        (Lwt_js_events.domContentLoaded ())
+        Closure.on_dom_loaded
+      |> ignore;
+      Ok ()
   end

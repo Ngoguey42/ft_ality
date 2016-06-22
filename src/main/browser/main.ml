@@ -6,7 +6,7 @@
 (*   By: ngoguey <ngoguey@student.42.fr>            +#+  +:+       +#+        *)
 (*                                                +#+#+#+#+#+   +#+           *)
 (*   Created: 2016/06/16 07:03:16 by ngoguey           #+#    #+#             *)
-(*   Updated: 2016/06/21 15:36:51 by ngoguey          ###   ########.fr       *)
+(*   Updated: 2016/06/22 08:04:11 by ngoguey          ###   ########.fr       *)
 (*                                                                            *)
 (* ************************************************************************** *)
 
@@ -29,19 +29,5 @@ module D : Shared_intf.Display_intf = Display.Make(Key)(KP)(G)(A)(C)
 
 let () =
   (* Ftlog.disable (); *)
-  Ftlog.lvl 0;
-  Ftlog.outnl "Listen domContentLoaded before Display.run_err() phase";
-  Lwt.bind
-    (Lwt_js_events.domContentLoaded ())
-    (fun () ->
-      Ftlog.outnl "on_domContentLoaded()";
-      match D.run_err () with
-      | Error msg ->
-         Dom_html.window##alert (
-             Printf.sprintf "Error: \"%s\"" msg
-             |> Js.string);
-         Lwt.fail_with msg
-      | _ ->
-         Lwt.return_unit
-    )
+  D.run_err ()
   |> ignore
