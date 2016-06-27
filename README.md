@@ -120,3 +120,7 @@ cd tmp_ftality
 <BR>
 > Cytoscape.js, graph rendering in browser with js
 > - http://js.cytoscape.org
+
+<BR>
+> Mortal kombat combos
+> - http://www.eventhubs.com/guides/2012/nov/30/mortal-kombat-9-moves-characters-combos-and-strategy-guides/
